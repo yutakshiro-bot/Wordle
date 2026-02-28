@@ -248,7 +248,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v11</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v12</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -1224,7 +1224,10 @@ async function fetchDB() {
       headers: { 'X-Master-Key': JSONBIN_KEY }
     });
     const j = await r.json();
-    dbCache = j && typeof j === 'object' && !j.message ? j : {};
+    // JSONBin sometimes wraps in { record: {...} }, sometimes returns directly
+    let data = j;
+    if (j && j.record && typeof j.record === 'object') data = j.record;
+    dbCache = data && typeof data === 'object' && !data.message ? data : {};
     return dbCache;
   } catch(e) { console.error('DB fetch failed', e); return dbCache || {}; }
 }
@@ -1268,39 +1271,41 @@ async function loadUser() {
 }
 
 async function saveUserStats(won) {
-  if (!currentUser) return;
-  // Always fetch fresh so we don't overwrite other players' data
+  if (!currentUser || !IS_CONFIGURED) return;
+  // Always fetch a completely fresh copy first so we never overwrite other players
   dbCache = null;
   const users = await fetchDB();
   const user = users[currentUser];
   if (!user) return;
 
-  // Ensure wins fields exist for old accounts
-  if (user.totalWins === undefined) user.totalWins = 0;
-  if (user.blitzWins === undefined) user.blitzWins = 0;
-  if (user.easyWins  === undefined) user.easyWins  = 0;
+  // Ensure all fields exist (backfills old accounts)
+  if (!user.totalWins) user.totalWins = 0;
+  if (!user.blitzWins) user.blitzWins = 0;
+  if (!user.easyWins)  user.easyWins  = 0;
 
-  user.streak     = streak;
+  // Save streak
+  user.streak = streak;
   user.bestStreak = bestStreak;
   const streakKey = gameMode === 'blitz' ? 'blitzBest' : gameMode === 'easy' ? 'easyBest' : 'bestStreak';
   if (bestStreak > (user[streakKey] || 0)) user[streakKey] = bestStreak;
 
+  // Save wins
   if (won) {
     const winsKey = gameMode === 'blitz' ? 'blitzWins' : gameMode === 'easy' ? 'easyWins' : 'totalWins';
     user[winsKey] = (user[winsKey] || 0) + 1;
-    // Time-period wins
     const now = new Date();
     const wk = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
-    const weekSuffix  = `_w_${now.getFullYear()}_w${wk}_${now.getMonth()}`;
-    const monthSuffix = `_m_${now.getFullYear()}_${now.getMonth()}`;
-    user[winsKey + weekSuffix]  = (user[winsKey + weekSuffix]  || 0) + 1;
-    user[winsKey + monthSuffix] = (user[winsKey + monthSuffix] || 0) + 1;
-    // Time-period streaks
-    const wStreakKey = streakKey + weekSuffix;
-    const mStreakKey = streakKey + monthSuffix;
-    if (bestStreak > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreak;
-    if (bestStreak > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreak;
+    const wSuffix = `_w_${now.getFullYear()}_w${wk}_${now.getMonth()}`;
+    const mSuffix = `_m_${now.getFullYear()}_${now.getMonth()}`;
+    user[winsKey + wSuffix]  = (user[winsKey + wSuffix]  || 0) + 1;
+    user[winsKey + mSuffix]  = (user[winsKey + mSuffix]  || 0) + 1;
+    const wSKey = streakKey + wSuffix;
+    const mSKey = streakKey + mSuffix;
+    if (bestStreak > (user[wSKey] || 0)) user[wSKey] = bestStreak;
+    if (bestStreak > (user[mSKey] || 0)) user[mSKey] = bestStreak;
   }
+
+  // Push the whole updated db back
   dbDirty = true;
   await pushDB();
 }
