@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WORDLE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --border:#333; --text:#f0ede8;
+  --muted:#555; --correct:#538d4e; --present:#b59f3b;
+  --absent:#2a2a2a; --absent-text:#555; --key-bg:#2a2a2a;
+  --key-text:#f0ede8; --accent:#e8d5b7;
+}
+body.light {
+  --bg:#f9f6f1; --surface:#fff; --border:#d0ccc5; --text:#1a1a1a;
+  --muted:#999; --absent:#d3d6da; --absent-text:#888; --key-bg:#d3d6da;
+  --key-text:#1a1a1a; --accent:#6b5c3e;
+}
+body { background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:0 16px 40px; overflow-x:hidden; transition:background 0.25s, color 0.25s; }
+body.has-bg { background-size:cover !important; background-position:center !important; background-repeat:no-repeat !important; }
+
+/* ── Header ── */
+header { width:100%; max-width:640px; padding:14px 4px; border-bottom:1px solid var(--border); margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; position:relative; gap:8px; }
+.header-center { text-align:center; position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; }
+h1 { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:0.18em; color:var(--accent); line-height:1; }
+.subtitle { font-size:0.55rem; color:var(--muted); letter-spacing:0.25em; text-transform:uppercase; margin-top:2px; }
+.byline { font-size:0.5rem; color:var(--muted); letter-spacing:0.15em; margin-top:3px; opacity:0.7; }
+
+/* ── Left nav ── */
+.header-nav { display:flex; gap:5px; align-items:center; }
+.nav-btn { position:relative; padding:5px 8px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.55rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:border-color 0.15s, color 0.15s; white-space:nowrap; }
+.nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+.nav-btn:hover .nav-tip { opacity:1; transform:translateX(-50%) translateY(0); }
+.nav-tip { position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%) translateY(-4px); background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'Space Mono',monospace; font-size:0.5rem; padding:5px 9px; white-space:nowrap; opacity:0; transition:opacity 0.15s, transform 0.15s; z-index:60; pointer-events:none; }
+.nav-tip::before { content:''; position:absolute; top:-5px; left:50%; transform:translateX(-50%); border:4px solid transparent; border-bottom-color:var(--border); border-top:none; }
+
+/* ── Auth area ── */
+.header-auth { display:flex; gap:7px; align-items:center; }
+.btn-ghost { padding:6px 12px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.55rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:border-color 0.15s,color 0.15s; }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+.btn-solid { padding:6px 12px; background:var(--correct); border:1px solid var(--correct); color:#fff; font-family:'Space Mono',monospace; font-size:0.55rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:filter 0.15s; }
+.btn-solid:hover { filter:brightness(1.2); }
+#user-chip { display:flex; align-items:center; gap:7px; font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--accent); letter-spacing:0.08em; text-transform:uppercase; }
+.avatar { width:26px; height:26px; background:var(--correct); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.95rem; color:#fff; }
+#btn-logout { background:none; border:none; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.5rem; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; padding:3px; transition:color 0.15s; }
+#btn-logout:hover { color:#e06060; }
+
+/* ── Blitz timer bar ── */
+#blitz-bar-wrap { width:min(330px,92vw); height:6px; background:var(--border); margin-bottom:14px; display:none; border-radius:3px; overflow:hidden; }
+#blitz-bar-fill { height:100%; width:100%; background:var(--correct); transition:width 1s linear, background 0.5s; border-radius:3px; }
+#blitz-timer-text { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--accent); letter-spacing:0.12em; margin-bottom:8px; display:none; }
+
+/* ── Grid & Tiles ── */
+#grid { display:grid; grid-template-rows:repeat(6,1fr); gap:6px; margin-bottom:24px; width:min(330px, 92vw); }
+.row { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.tile { width:clamp(48px, 13vw, 58px); height:clamp(48px, 13vw, 58px); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:clamp(1.5rem, 4.5vw, 2rem); letter-spacing:0.05em; transition:border-color 0.1s; color:var(--text); }
+.tile.filled { border-color:#777; animation:pop 0.1s ease; }
+.tile.correct { background:var(--correct); border-color:var(--correct); color:#fff; }
+.tile.present { background:var(--present); border-color:var(--present); color:#fff; }
+.tile.absent  { background:var(--absent);  border-color:var(--absent);  color:var(--absent-text); }
+.tile.hint    { background:#2a4a8a; border-color:#2a4a8a; color:#aac4ff; }
+.row.shake { animation:shake 0.5s ease; }
+
+/* ── Keyboard ── */
+#keyboard { display:flex; flex-direction:column; gap:6px; align-items:center; width:min(500px, 98vw); }
+.kb-row { display:flex; gap:5px; }
+.key { height:clamp(42px, 11vw, 54px); min-width:clamp(28px, 8vw, 38px); padding:0 6px; background:var(--key-bg); color:var(--key-text); border:none; border-radius:3px; font-family:'Space Mono',monospace; font-size:clamp(0.55rem, 1.8vw, 0.7rem); font-weight:700; cursor:pointer; transition:background 0.15s,color 0.15s,transform 0.08s; text-transform:uppercase; display:flex; align-items:center; justify-content:center; }
+.key.wide { min-width:clamp(44px, 12vw, 56px); font-size:clamp(0.45rem, 1.5vw, 0.6rem); }
+.key:active { transform:scale(0.94); }
+.key.correct { background:var(--correct); color:#fff; }
+.key.present { background:var(--present); color:#fff; }
+.key.absent  { background:#1a1a1a; color:var(--absent-text); }
+body.light .key.absent { background:#787c7e; color:#fff; }
+.key.hint-used { background:#2a4a8a; color:#aac4ff; }
+
+/* ── Toast ── */
+#toast-container { position:fixed; top:80px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; align-items:center; z-index:400; pointer-events:none; }
+.toast { background:var(--text); color:var(--bg); padding:10px 20px; font-family:'Space Mono',monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:2px; animation:fadeUp 0.3s ease, fadeOut 0.3s ease 1.7s forwards; white-space:nowrap; }
+
+/* ── Keyframes ── */
+@keyframes pop     { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+@keyframes flipIn  { 0%{transform:rotateX(0)} 50%{transform:rotateX(-90deg)} 100%{transform:rotateX(0)} }
+@keyframes bounce  { 0%{transform:translateY(0)} 50%{transform:translateY(-16px)} 100%{transform:translateY(0)} }
+@keyframes shake   { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeOut { to{opacity:0} }
+@keyframes oIn     { from{opacity:0} to{opacity:1} }
+@keyframes mUp     { from{transform:translateY(36px) scale(0.96);opacity:0} to{transform:none;opacity:1} }
+@keyframes eTile   { from{transform:scale(0.5) rotateY(90deg);opacity:0} to{transform:none;opacity:1} }
+@keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Overlay / Modal ── */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:200; align-items:center; justify-content:center; }
+.overlay.show { display:flex; animation:oIn 0.22s ease; }
+.modal { background:var(--surface); border:1px solid var(--border); width:min(430px,93vw); padding:30px 28px 26px; display:flex; flex-direction:column; animation:mUp 0.35s cubic-bezier(0.34,1.4,0.64,1); max-height:90vh; overflow-y:auto; }
+body:not(.light) .modal { background:#141414; }
+
+/* ── End modal ── */
+.end-lbl { font-family:'Space Mono',monospace; font-size:0.58rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+#end-message { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:0.1em; color:var(--accent); line-height:1; margin-bottom:4px; }
+#answer-reveal { font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:20px; }
+.end-div { width:100%; height:1px; background:var(--border); margin:2px 0 18px; }
+#end-word-tiles { display:flex; gap:5px; margin-bottom:18px; }
+.end-tile { width:42px; height:42px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:1.4rem; font-weight:700; border:2px solid transparent; color:#fff; animation:eTile 0.4s cubic-bezier(0.34,1.4,0.64,1) both; }
+.end-tile.correct { background:var(--correct); border-color:var(--correct); }
+.end-tile.present { background:var(--present); border-color:var(--present); }
+.end-tile.absent  { background:#3a3a3a; border-color:#3a3a3a; color:#888; }
+.end-stats { display:flex; gap:10px; width:100%; margin-bottom:18px; }
+.stat-box { flex:1; background:rgba(0,0,0,0.12); border:1px solid var(--border); padding:10px 6px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+body.light .stat-box { background:rgba(0,0,0,0.04); }
+.stat-num { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; color:var(--accent); line-height:1; }
+.stat-lbl { font-family:'Space Mono',monospace; font-size:0.48rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); text-align:center; }
+#end-time { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--text); letter-spacing:0.1em; margin-bottom:18px; }
+#end-time span { color:var(--muted); font-size:0.85rem; }
+#play-again { width:100%; padding:13px; background:var(--correct); border:none; color:#fff; font-family:'Space Mono',monospace; font-size:0.72rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:filter 0.15s,transform 0.1s; }
+#play-again:hover { filter:brightness(1.15); transform:translateY(-1px); }
+
+/* ── Menu common ── */
+.menu-title { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; letter-spacing:0.1em; color:var(--accent); margin-bottom:18px; }
+.menu-div   { width:100%; height:1px; background:var(--border); margin-bottom:18px; }
+.menu-close { margin-top:18px; width:100%; padding:11px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.62rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:border-color 0.15s,color 0.15s; }
+.menu-close:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── Settings ── */
+.srow { display:flex; align-items:flex-start; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--border); gap:12px; }
+.srow:last-child { border-bottom:none; }
+.slbl { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; }
+.sdesc { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--muted); margin-top:3px; line-height:1.5; }
+.toggle { width:40px; height:22px; background:#2a2a2a; border:1px solid #444; border-radius:11px; cursor:pointer; position:relative; transition:background 0.2s,border-color 0.2s; flex-shrink:0; margin-top:2px; }
+body.light .toggle { background:#d0ccc5; border-color:#bbb; }
+.toggle.on { background:var(--correct); border-color:var(--correct); }
+.toggle::after { content:''; position:absolute; top:3px; left:3px; width:14px; height:14px; background:#fff; border-radius:50%; transition:left 0.2s; }
+.toggle.on::after { left:21px; }
+/* Colour picker */
+.bg-options { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center; }
+.bg-swatch { width:28px; height:28px; border:2px solid transparent; cursor:pointer; border-radius:50%; transition:border-color 0.15s, transform 0.1s; }
+.bg-swatch:hover, .bg-swatch.active { border-color:var(--accent); transform:scale(1.1); }
+.bg-swatch.clear { background: conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); }
+.bg-upload-btn { padding:5px 10px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.5rem; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; transition:border-color 0.15s,color 0.15s; }
+.bg-upload-btn:hover { border-color:var(--accent); color:var(--accent); }
+#bg-color-input { width:40px; height:28px; border:1px solid var(--border); padding:0; cursor:pointer; background:none; }
+#bg-reset-btn { padding:5px 10px; background:transparent; border:1px solid #e06060; color:#e06060; font-family:'Space Mono',monospace; font-size:0.5rem; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; }
+#bg-reset-btn:hover { background:#e06060; color:#fff; }
+
+/* ── Gamemodes ── */
+.gcard { border:1px solid var(--border); padding:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
+.gcard:hover { border-color:var(--accent); }
+.gcard.active { border-color:var(--correct); background:rgba(83,141,78,0.08); }
+.gcard-icon { font-size:1.3rem; }
+.gcard-name { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:0.1em; }
+.gcard-desc { font-family:'Space Mono',monospace; font-size:0.52rem; color:var(--muted); margin-top:2px; }
+.gcard-badge { margin-left:auto; background:var(--correct); color:#fff; font-family:'Space Mono',monospace; font-size:0.48rem; padding:3px 7px; letter-spacing:0.08em; text-transform:uppercase; flex-shrink:0; }
+
+/* ── Leaderboard ── */
+.lb-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); }
+.lb-tab { flex:1; padding:8px 4px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.52rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:color 0.15s,border-color 0.15s; margin-bottom:-1px; }
+.lb-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.lb-type-tabs { display:flex; gap:6px; margin-bottom:14px; margin-top:10px; }
+.lb-type-tab { flex:1; padding:6px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; }
+.lb-type-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(232,213,183,0.06); }
+#lb-list { max-height:280px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; margin-bottom:4px; }
+#lb-list::-webkit-scrollbar { width:4px; }
+#lb-list::-webkit-scrollbar-track { background:transparent; }
+#lb-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.lb-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--muted); width:28px; text-align:center; flex-shrink:0; }
+.lb-rank.gold   { color:#ffd700; }
+.lb-rank.silver { color:#c0c0c0; }
+.lb-rank.bronze { color:#cd7f32; }
+.lb-name { font-family:'Space Mono',monospace; font-size:0.62rem; flex:1; }
+.lb-name.you { color:var(--correct); }
+.lb-score-col { display:flex; flex-direction:column; align-items:flex-end; }
+.lb-score { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--accent); line-height:1; }
+.lb-score-lbl { font-family:'Space Mono',monospace; font-size:0.4rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+.lb-empty { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--muted); text-align:center; padding:24px 0; letter-spacing:0.1em; }
+.lb-refresh-btn { background:none; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.48rem; padding:4px 10px; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; transition:all 0.15s; margin-bottom:8px; float:right; }
+.lb-refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.spinning { animation:spin 0.7s linear; display:inline-block; }
+
+/* ── Auth modal ── */
+.auth-tabs { display:flex; margin-bottom:24px; border-bottom:1px solid var(--border); }
+.auth-tab { flex:1; padding:9px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.62rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:color 0.15s,border-color 0.15s; margin-bottom:-1px; }
+.auth-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.afield { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+.albl { font-family:'Space Mono',monospace; font-size:0.52rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--muted); }
+.ainput { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px 13px; font-family:'Space Mono',monospace; font-size:0.72rem; outline:none; width:100%; transition:border-color 0.15s; }
+.ainput:focus { border-color:var(--accent); }
+.aerr { font-family:'Space Mono',monospace; font-size:0.55rem; color:#e06060; min-height:15px; margin-bottom:3px; }
+.asubmit { width:100%; padding:12px; background:var(--correct); border:none; color:#fff; font-family:'Space Mono',monospace; font-size:0.68rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:filter 0.15s; margin-top:3px; }
+.asubmit:hover { filter:brightness(1.15); }
+.pw-bar { height:3px; background:var(--border); margin-top:5px; }
+.pw-fill { height:100%; width:0%; transition:width 0.3s,background 0.3s; }
+.pw-reqs { display:flex; flex-direction:column; gap:3px; margin-top:5px; margin-bottom:10px; }
+.pw-req { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--muted); display:flex; align-items:center; gap:5px; transition:color 0.2s; }
+.pw-req.met { color:var(--correct); }
+.pw-req::before { content:'○'; font-size:0.58rem; }
+.pw-req.met::before { content:'●'; }
+
+.font-btn { padding:6px 12px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.55rem; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; transition:all 0.15s; }
+.font-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(232,213,183,0.06); }
+.font-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── Setup banner ── */
+#setup-banner { display:none; position:fixed; bottom:0; left:0; right:0; background:#1a1000; border-top:2px solid #b59f3b; padding:14px 20px; z-index:500; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+#setup-banner .sb-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:#b59f3b; letter-spacing:0.1em; flex-shrink:0; margin-top:1px; }
+#setup-banner .sb-steps { font-family:'Space Mono',monospace; font-size:0.55rem; color:#aaa; line-height:1.9; flex:1; min-width:200px; }
+#setup-banner .sb-steps a { color:#b59f3b; }
+#setup-banner .sb-close { background:none; border:1px solid #555; color:#888; font-family:'Space Mono',monospace; font-size:0.5rem; padding:5px 10px; cursor:pointer; letter-spacing:0.1em; flex-shrink:0; margin-top:2px; }
+#setup-banner .sb-close:hover { border-color:#b59f3b; color:#b59f3b; }
+</style>
+</head>
+<body>
+
+<!-- ⚠️ Setup Banner — hidden once JSONBin is configured -->
+<div id="setup-banner">
+  <div class="sb-title">⚙ Cloud Setup Needed</div>
+  <div class="sb-steps">
+    To save accounts &amp; scores across devices, add your JSONBin credentials to the top of this file's &lt;script&gt; block:<br>
+    1 · Go to <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → sign up free &nbsp;|&nbsp;
+    2 · Copy your <b>Master Key</b> from API Keys &nbsp;|&nbsp;
+    3 · Click <b>Create Bin</b>, set content to <b>{}</b>, make it Public, copy the <b>Bin ID</b><br>
+    4 · Open this HTML file in a text editor, find <b>JSONBIN_KEY</b> and <b>JSONBIN_BIN</b> near the top of the &lt;script&gt;, paste your values, save &amp; re-open
+  </div>
+  <button class="sb-close" onclick="this.parentElement.style.display='none'">Dismiss</button>
+</div>
+
+<header>
+  <div class="header-nav">
+    <button class="nav-btn" onclick="openMenu('settings')">⚙<span class="nav-tip">Settings</span></button>
+    <button class="nav-btn" onclick="openMenu('gamemodes')">◈<span class="nav-tip">Gamemodes</span></button>
+    <button class="nav-btn" onclick="openMenu('leaderboard')">🏆<span class="nav-tip">Leaderboard</span></button>
+  </div>
+  <div class="header-center">
+    <h1>Wordle</h1>
+    <p class="subtitle">Guess the 5-letter word</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v9</p>
+  </div>
+  <div class="header-auth" id="header-auth">
+    <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
+    <button class="btn-solid" onclick="openAuth('signup')">Sign Up</button>
+  </div>
+</header>
+
+<!-- Blitz timer -->
+<div id="blitz-timer-text">30</div>
+<div id="blitz-bar-wrap"><div id="blitz-bar-fill"></div></div>
+
+<!-- Grid -->
+<div id="grid"></div>
+<div id="keyboard"></div>
+<div id="toast-container"></div>
+
+<!-- ══ Settings Modal ══ -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <div class="menu-title">Settings</div>
+    <div class="menu-div"></div>
+    <div class="srow">
+      <div><div class="slbl">Light Mode</div><div class="sdesc">Switch to a light colour theme</div></div>
+      <div class="toggle" id="toggle-light" onclick="toggleLight()"></div>
+    </div>
+    <div class="srow">
+      <div style="width:100%">
+        <div class="slbl">Background</div>
+        <div class="sdesc">Pick a colour or upload a custom image</div>
+        <div class="bg-options">
+          <input type="color" id="bg-color-input" value="#0f0f0f" oninput="applyBgColor(this.value)" title="Pick colour">
+          <label class="bg-upload-btn">Upload Image<input type="file" id="bg-img-input" accept="image/*" style="display:none" onchange="applyBgImage(this)"></label>
+          <button id="bg-reset-btn" onclick="resetBg()">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="srow">
+      <div style="width:100%">
+        <div class="slbl">Keyboard Colors</div>
+        <div class="sdesc">Customize correct, present and absent tile/key colors</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted);width:60px;letter-spacing:0.05em;">Correct</span>
+            <input type="color" id="color-correct" value="#538d4e" oninput="applyCustomColor('correct',this.value)" title="Correct color">
+            <span style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted);">Green tiles &amp; keys</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted);width:60px;letter-spacing:0.05em;">Present</span>
+            <input type="color" id="color-present" value="#b59f3b" oninput="applyCustomColor('present',this.value)" title="Present color">
+            <span style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted);">Yellow tiles &amp; keys</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted);width:60px;letter-spacing:0.05em;">Absent</span>
+            <input type="color" id="color-absent" value="#2a2a2a" oninput="applyCustomColor('absent',this.value)" title="Absent color">
+            <span style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted);">Dark tiles &amp; keys</span>
+          </div>
+          <button onclick="resetCustomColors()" style="margin-top:4px;padding:5px 10px;background:transparent;border:1px solid #e06060;color:#e06060;font-family:'Space Mono',monospace;font-size:0.5rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;width:fit-content;">Reset Colors</button>
+        </div>
+      </div>
+    </div>
+    <div class="srow">
+      <div style="width:100%">
+        <div class="slbl">Keyboard Font</div>
+        <div class="sdesc">Change the font used on keyboard keys</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button class="font-btn active" id="font-btn-mono" onclick="applyKeyFont('mono')">Mono</button>
+          <button class="font-btn" id="font-btn-bebas" onclick="applyKeyFont('bebas')">Bebas</button>
+          <button class="font-btn" id="font-btn-serif" onclick="applyKeyFont('serif')">Serif</button>
+          <button class="font-btn" id="font-btn-sans" onclick="applyKeyFont('sans')">Sans</button>
+        </div>
+      </div>
+    </div>
+    <button class="menu-close" onclick="closeMenu('settings')">Close</button>
+  </div>
+</div>
+
+<!-- ══ Gamemodes Modal ══ -->
+<div class="overlay" id="gamemodes-overlay">
+  <div class="modal">
+    <div class="menu-title">Gamemodes</div>
+    <div class="menu-div"></div>
+    <div class="gcard" id="gcard-classic" onclick="selectMode('classic')">
+      <div class="gcard-icon">📖</div>
+      <div><div class="gcard-name">Classic</div><div class="gcard-desc">Just basic wordle duh</div></div>
+      <div class="gcard-badge" id="gbadge-classic" style="display:none">Active</div>
+    </div>
+    <div class="gcard" id="gcard-blitz" onclick="selectMode('blitz')">
+      <div class="gcard-icon">⚡</div>
+      <div><div class="gcard-name">Blitz</div><div class="gcard-desc">Basic wordle but faster</div></div>
+      <div class="gcard-badge" id="gbadge-blitz" style="display:none">Active</div>
+    </div>
+    <div class="gcard" id="gcard-easy" onclick="selectMode('easy')">
+      <div class="gcard-icon">🌸</div>
+      <div><div class="gcard-name">Easy Peazy</div><div class="gcard-desc">Wordle but for people who have a smol vocab</div></div>
+      <div class="gcard-badge" id="gbadge-easy" style="display:none">Active</div>
+    </div>
+    <button class="menu-close" onclick="closeMenu('gamemodes')">Close</button>
+  </div>
+</div>
+
+<!-- ══ Leaderboard Modal ══ -->
+<div class="overlay" id="leaderboard-overlay">
+  <div class="modal">
+    <div class="menu-title">Leaderboard</div>
+    <div class="menu-div"></div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" id="lbt-classic" onclick="switchLb('classic')">Classic</button>
+      <button class="lb-tab" id="lbt-blitz" onclick="switchLb('blitz')">Blitz</button>
+      <button class="lb-tab" id="lbt-easy" onclick="switchLb('easy')">Easy</button>
+    </div>
+    <div class="lb-type-tabs">
+      <button class="lb-type-tab active" id="lbtype-streak" onclick="switchLbType('streak')">🔥 Best Streak</button>
+      <button class="lb-type-tab" id="lbtype-wins" onclick="switchLbType('wins')">🏆 Most Wins</button>
+    </div>
+    <button class="lb-refresh-btn" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh</button>
+    <div id="lb-list"></div>
+    <button class="menu-close" onclick="closeMenu('leaderboard')">Close</button>
+  </div>
+</div>
+
+<!-- ══ End Screen Modal ══ -->
+<div class="overlay" id="end-overlay">
+  <div class="modal" style="align-items:center;text-align:center;">
+    <div class="end-lbl">Result</div>
+    <div id="end-message"></div>
+    <div id="answer-reveal"></div>
+    <div class="end-div"></div>
+    <div id="end-word-tiles"></div>
+    <div class="end-stats">
+      <div class="stat-box"><div class="stat-num" id="stat-guesses">—</div><div class="stat-lbl">Guesses</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-best">0</div><div class="stat-lbl">Best</div></div>
+    </div>
+    <div id="end-time"></div>
+    <button id="play-again" onclick="initGame()">Play Again</button>
+  </div>
+</div>
+
+<!-- ══ Auth Modal ══ -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="form-login">
+      <div class="afield"><label class="albl">Username</label><input class="ainput" id="login-username" type="text" placeholder="your username" autocomplete="username"></div>
+      <div class="afield"><label class="albl">Password</label><input class="ainput" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div style="text-align:right;margin-top:-6px;margin-bottom:8px"><button onclick="switchTab('forgot')" style="background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.5rem;cursor:pointer;letter-spacing:0.08em;text-decoration:underline;">Forgot password?</button></div>
+      <div class="aerr" id="login-error"></div>
+      <button class="asubmit" onclick="doLogin()">Log In</button>
+    </div>
+    <div id="form-forgot" style="display:none">
+      <div style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:14px;line-height:1.6;">Enter your username to see your recovery hint.</div>
+      <div class="afield"><label class="albl">Username</label><input class="ainput" id="forgot-username" type="text" placeholder="your username"></div>
+      <div id="forgot-hint-box" style="display:none;background:rgba(83,141,78,0.1);border:1px solid var(--correct);padding:12px;margin-bottom:12px;font-family:'Space Mono',monospace;font-size:0.58rem;line-height:1.6;">
+        <div style="color:var(--muted);font-size:0.48rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">Your hint:</div>
+        <div id="forgot-hint-text" style="color:var(--text);"></div>
+      </div>
+      <div class="aerr" id="forgot-error"></div>
+      <button class="asubmit" onclick="doForgot()">Show My Hint</button>
+      <button onclick="switchTab('login')" style="width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;">← Back to Login</button>
+    </div>
+    <div id="form-signup" style="display:none">
+      <div class="afield"><label class="albl">Username <span style="opacity:0.5">(max 20)</span></label><input class="ainput" id="su-username" type="text" maxlength="20" placeholder="choose a username" autocomplete="username"></div>
+      <div class="afield"><label class="albl">Email</label><input class="ainput" id="su-email" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="afield">
+        <label class="albl">Password</label>
+        <input class="ainput" id="su-password" type="password" placeholder="••••••••" autocomplete="new-password" oninput="checkPwStrength(this.value)">
+        <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
+        <div class="pw-reqs">
+          <div class="pw-req" id="req-len">At least 5 letters</div>
+          <div class="pw-req" id="req-num">At least 1 number</div>
+          <div class="pw-req" id="req-spc">At least 1 special character</div>
+        </div>
+      </div>
+      <div class="afield">
+        <label class="albl">Recovery Hint <span style="opacity:0.5">(if you forget your password)</span></label>
+        <input class="ainput" id="su-hint" type="text" placeholder="e.g. my first pet's name" maxlength="80">
+        <div style="font-family:'Space Mono',monospace;font-size:0.46rem;color:var(--muted);margin-top:4px;">This will be shown to you if you forget your password. Don't make it your actual password!</div>
+      </div>
+      <div class="aerr" id="signup-error"></div>
+      <button class="asubmit" onclick="doSignup()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// WORD LISTS
+// ══════════════════════════════════════════════
+const ALL_WORDS = `CIGAR REBUT SISSY HUMPH AWAKE BLUSH FOCAL EVADE NAVAL SERVE HEATH DWARF MODEL KARMA STINK GRADE QUIET BENCH ABATE FEIGN
+MAJOR DEATH FRESH CRUST STOOL COLON ABASE MARRY REACT BATTY PRIDE FLOSS HELIX CROAK STAFF PAPER UNFED WHELP TRAWL OUTDO
+ADOBE CRAZY SOWER REPAY DIGIT CRATE CLUCK SPIKE MIMIC POUND MAXIM LINEN UNMET FLESH BOOBY FORTH FIRST STAND BELLY IVORY
+SEEDY PRINT YEARN DRAIN BRIBE STOUT PANEL CRASS FLUME OFFAL AGREE ERROR SWIRL ARGUE BLEED DELTA FLICK TOTEM WOOER FRONT
+SHRUB PARRY BIOME LAPEL START GREET GONER GOLEM LUSTY LOOPY ROUND AUDIT LYING GAMMA LABOR ISLET CIVIC FORGE CORNY MOULT
+BASIC SALAD AGATE SPICY SPRAY ESSAY FJORD SPEND KEBAB GUILD ABACK MOTOR ALONE HATCH HYPER THUMB DOWRY OUGHT BELCH DUTCH
+PILOT TWEED COMET JAUNT ENEMA STEED ABYSS GROWL FLING DOZEN BOOZY ERODE WORLD GOUGE CLICK BRIAR GREAT ALTAR PULPY BLURT
+COAST DUCHY GROIN FIXER GROUP ROGUE BADLY SMART PITHY GAUDY CHILL HERON VODKA FINER SURER RADIO ROUGE PERCH RETCH WROTE
+CLOCK TILDE STORE PROVE BRING SOLVE CHEAT GRIME EXULT USHER EPOCH TRIAD BREAK RHINO VIRAL CONIC MASSE SONIC VITAL TRACE
+USING PEACH CHAMP BATON BRAKE PLUCK CRAZE GRIPE WEARY PICKY ACUTE FERRY ASIDE TAPIR TROLL UNIFY REBUS BOOST TRUSS SIEGE
+TIGER BANAL SLUMP CRANK GORGE QUERY DRINK FAVOR ABBEY TANGY PANIC SOLAR SHIRE PROXY POINT ROBOT PRICK WINCE CRIMP KNOLL
+SUGAR WHACK MOUNT PERKY COULD WRUNG LIGHT THOSE MOIST SHARD PLEAT ALOFT SKILL ELDER FRAME HUMOR PAUSE ULCER ULTRA ROBIN
+CYNIC AROMA CAULK SHAKE DODGE SWILL TACIT OTHER THORN TROVE BLOKE VIVID SPILL CHANT CHOKE RUPEE NASTY MOURN AHEAD BRINE
+CLOTH HOARD SWEET MONTH LAPSE WATCH TODAY FOCUS SMELT TEASE CATER MOVIE SAUTE ALLOW RENEW THEIR SLOSH PURGE CHEST DEPOT
+EPOXY NYMPH FOUND SHALL HARRY STOVE LOWLY SNOUT TROPE FEWER SHAWL NATAL COMMA FORAY SCARE STAIR BLACK SQUAD ROYAL CHUNK
+MINCE SHAME CHEEK AMPLE FLAIR FOYER CARGO OXIDE PLANT OLIVE INERT ASKEW HEIST SHOWN ZESTY HASTY TRASH FELLA LARVA FORGO
+STORY HAIRY TRAIN HOMER BADGE MIDST CANNY FETUS BUTCH FARCE SLUNG TIPSY METAL YIELD DELVE BEING SCOUR GLASS GAMER SCRAP
+MONEY HINGE ALBUM VOUCH ASSET TIARA CREPT BAYOU ATOLL MANOR CREAK SHOWY PHASE FROTH DEPTH GLOOM FLOOD TRAIT GIRTH PIETY
+PAYER GOOSE FLOAT DONOR ATONE PRIMO APRON BLOWN CACAO LOSER INPUT GLOAT AWFUL BRINK SMITE BEADY RUSTY RETRO DROLL GAWKY
+HUTCH PINTO GAILY EGRET LILAC SEVER FIELD FLUFF HYDRO FLACK AGAPE VOICE STEAD STALK BERTH MADAM NIGHT BLAND LIVER WEDGE
+AUGUR ROOMY WACKY FLOCK ANGRY BOBBY TRITE APHID TRYST MIDGE POWER ELOPE CINCH MOTTO STOMP UPSET BLUFF CRAMP QUART COYLY
+YOUTH RHYME BUGGY ALIEN SMEAR UNFIT PATTY CLING GLEAN LABEL HUNKY KHAKI POKER GRUEL TWICE TWANG SHRUG TREAT UNLIT WASTE
+MERIT WOVEN OCTAL NEEDY CLOWN WIDOW IRONY RUDER GAUZE CHIEF ONSET PRIZE FUNGI CHARM GULLY INTER WHOOP TAUNT LEERY CLASS
+THEME LOFTY TIBIA BOOZE ALPHA THYME ECLAT DOUBT PARER CHUTE STICK TRICE ALIKE SOOTH RECAP SAINT LIEGE GLORY GRATE ADMIT
+BRISK SOGGY USURP SCALD SCORN LEAVE TWINE STING BOUGH MARSH SLOTH DANDY VIGOR HOWDY ENJOY VALID IONIC EQUAL UNSET FLOOR
+CATCH SPADE STEIN EXIST QUIRK DENIM GROVE SPIEL MUMMY FAULT FOGGY FLOUT CARRY SNEAK LIBEL WALTZ APTLY PINEY INEPT ALOUD
+PHOTO DREAM STALE VOMIT OMBRE FANNY UNITE SNARL BAKER THERE GLYPH POOCH HIPPY SPELL FOLLY LOUSE GULCH VAULT GODLY THREW
+FLEET GRAVE INANE SHOCK CRAVE SPITE VALVE SKIMP CLAIM RAINY MUSTY PIQUE DADDY QUASI ARISE AGING VALET OPIUM AVERT STUCK
+RECUT MULCH GENRE PLUME RIFLE COUNT INCUR TOTAL WREST MOCHA DETER STUDY LOVER SAFER RIVET FUNNY SMOKE MOUND UNDUE SEDAN
+PAGAN SWINE GUILE GUSTY EQUIP TOUGH CANOE CHAOS COVET HUMAN UDDER LUNCH BLAST STRAY MANGA MELEE LEFTY QUICK PASTE GIVEN
+OCTET RISEN GROAN LEAKY GRIND CARVE LOOSE SADLY SPILT APPLE SLACK HONEY FINAL SHEEN EERIE MINTY SLICK DERBY WHARF SPELT
+COACH ERUPT SINGE PRICE SPAWN FAIRY JIFFY FILMY STACK CHOSE SLEEP ARDOR NANNY NIECE WOOZY HANDY GRACE DITTO STANK CREAM
+USUAL DIODE VALOR ANGLE NINJA MUDDY CHASE REPLY PRONE SPOIL HEART SHADE DINER ARSON ONION SLEET DOWEL COUCH PALSY BOWEL
+SMILE EVOKE CREEK LANCE EAGLE IDIOT SIREN BUILT EMBED AWARD DROSS ANNUL GOODY FROWN PATIO LADEN HUMID ELITE LYMPH EDIFY
+MIGHT RESET VISIT GUSTO PURSE VAPOR CROCK WRITE SUNNY LOATH CHAFF SLIDE QUEER VENOM STAMP SORRY STILL ACORN APING PUSHY
+TAMER HATER MANIA AWOKE BRAWN SWIFT EXILE BIRCH LUCKY FREER RISKY GHOST PLIER LUNAR WINCH SNARE NURSE HOUSE BORAX NICER
+LURCH EXALT ABOUT SAVVY TOXIN TUNIC PRIED INLAY CHUMP LANKY CRESS EATER ELUDE CYCLE KITTY BOULE MORON TENET PLACE LOBBY
+PLUSH VIGIL INDEX BLINK CLUNG QUALM CROUP CLINK JUICY STAGE DECAY NERVE FLIER SHAFT CROOK CLEAN CHINA RIDGE VOWEL GNOME
+SNUCK ICING SPINY RIGOR SNAIL FLOWN RABID PROSE THANK POPPY BUDGE FIBER MOLDY DOWDY KNEEL TRACK CADDY QUELL DUMPY PALER
+SWORE REBAR SCUBA SPLAT FLYER HORNY MASON DOING OZONE AMPLY MOLAR OVARY BESET QUEUE CLIFF MAGIC TRUCE SPORT FRITZ EDICT
+TWIRL VERSE LLAMA EATEN RANGE WHISK HOVEL REHAB MACAW SIGMA SPOUT VERVE SUSHI DYING FETID BRAIN BUDDY THUMP SCION CANDY
+CHORD BASIN MARCH CROWD ARBOR GAYLY MUSKY STAIN DALLY BLESS BRAVO STUNG TITLE RULER KIOSK BLOND ENNUI LAYER FLUID TATTY
+SCORE CUTIE ZEBRA BARGE MATEY BLUER AIDER SHOOK RIVER PRIVY BETEL FRISK BONGO BEGUN AZURE WEAVE GENIE SOUND GLOVE BRAID
+SCOPE WRYLY ROVER ASSAY OCEAN BLOOM IRATE LATER WOKEN SILKY WRECK DWELT SLATE SMACK SOLID AMAZE HAZEL WRIST JOLLY GLOBE
+FLINT ROUSE CIVIL VISTA RELAX COVER ALIVE BEECH JETTY BLISS VOCAL OFTEN DOLLY EIGHT JOKER SINCE EVENT ENSUE SHUNT DIVER
+POSER WORST SWEEP ALLEY CREED ANIME LEAFY BOSOM DUNCE STARE PUDGY WAIVE CHOIR STOOD SPOKE OUTGO DELAY BILGE IDEAL CLASP
+SEIZE HOTLY LAUGH SIEVE BLOCK MEANT GRAPE NOOSE HARDY SHIED DRAWL DAISY PUTTY STRUT BURNT TULIP CRICK IDYLL VIXEN FUROR
+GEEKY COUGH NAIVE SHOAL STORK BATHE AUNTY CHECK PRIME BRASS OUTER FURRY RAZOR ELECT EVICT IMPLY DEMUR QUOTA HAVEN CAVIL
+SWEAR CRUMP DOUGH GAVEL WAGON SALON NUDGE HAREM PITCH SWORN PUPIL EXCEL STONY CABIN UNZIP QUEEN TROUT POLYP EARTH STORM
+UNTIL TAPER ENTER CHILD ADOPT MINOR FATTY HUSKY BRAVE FILET SLIME GLINT TREAD STEAL REGAL GUEST EVERY MURKY SHARE SPORE
+HOIST BUXOM INNER OTTER DIMLY LEVEL SUMAC DONUT STILT ARENA SHEET SCRUB FANCY SLIMY PEARL SILLY PORCH DINGO SEPIA AMBLE
+SHADY BREAD FRIAR REIGN DAIRY QUILL CROSS BROOD TUBER SHEAR POSIT BLANK VILLA SHANK PIGGY FREAK WHICH AMONG FECAL SHELL
+WOULD ALGAE LARGE RABBI AGONY AMUSE BUSHY COPSE SWOON KNIFE POUCH ASCOT PLANE CROWN URBAN SNIDE RELAY ABIDE VIOLA RAJAH
+STRAW DILLY CRASH AMASS THIRD TRICK TUTOR WOODY BLURB GRIEF DISCO WHERE SASSY BEACH SAUNA COMIC CLUED CREEP CASTE GRAZE
+SNUFF FROCK GONAD DRUNK PRONG LURID STEEL HALVE BUYER VINYL UTILE SMELL ADAGE WORRY TASTY LOCAL TRADE FINCH ASHEN MODAL
+GAUNT CLOVE ENACT ADORN ROAST SPECK SHEIK MISSY GRUNT SNOOP PARTY TOUCH MAFIA EMCEE ARRAY SOUTH VAPID JELLY SKULK ANGST
+TUBAL LOWER CREST SWEAT CYBER ADORE TARDY SWAMI NOTCH GROOM ROACH HITCH YOUNG ALIGN READY FROND STRAP PUREE REALM VENUE
+SWARM OFFER SEVEN DRYER DIARY DRYLY DRANK ACRID HEADY THETA JUNTO PIXIE QUOTH BONUS SHALT PENNE AMEND DATUM BUILD PIANO
+SHELF LODGE SUING REARM CORAL RAMEN WORTH PSALM INFER OVERT MAYOR OVOID GLIDE USAGE POISE RANDY CHUCK PRANK FISHY TOOTH
+ETHER DROVE IDLER SWATH STINT WHILE BEGAT APPLY SLANG TAROT RADAR CREDO AWARE CANON SHIFT TIMER BYLAW SERUM THREE STEAK
+ILIAC SHIRK BLUNT PUPPY PENAL JOIST BUNNY SHAPE BEGET WHEEL ADEPT STUNT STOLE TOPAZ CHORE FLUKE AFOOT BLOAT BULLY DENSE
+CAPER SNEER BOXER JUMBO LUNGE SPACE AVAIL SHORT SLURP LOYAL FLIRT PIZZA CONCH TEMPO DROOP PLATE BIBLE PLUNK AFOUL SAVOY
+STEEP AGILE STAKE DWELL KNAVE BEARD AROSE MOTIF SMASH BROIL GLARE SHOVE BAGGY MAMMY SWAMP ALONG RUGBY WAGER QUACK SQUAT
+SNAKY DEBIT MANGE SKATE NINTH JOUST TRAMP SPURN MEDAL MICRO REBEL FLANK LEARN NADIR MAPLE COMFY REMIT GRUFF ESTER LEAST
+MOGUL FETCH CAUSE OAKEN AGLOW MEATY GAFFE SHYLY RACER PROWL THIEF STERN POESY ROCKY TWEET WAIST SPIRE GROPE HAVOC PATSY
+TRULY FORTY DEITY UNCLE SWISH GIVER PREEN BEVEL LEMUR DRAFT SLOPE ANNOY LINGO BLEAK DITTY CURLY CEDAR DIRGE GROWN HORDE
+DROOL SHUCK CRYPT CUMIN STOCK GRAVY LOCUS WIDER BREED QUITE CHAFE CACHE BLIMP DEIGN FIEND LOGIC CHEAP ELIDE RIGID FALSE
+RENAL PENCE ROWDY SHOOT BLAZE ENVOY POSSE BRIEF NEVER ABORT MOUSE MUCKY SULKY FIERY MEDIA TRUNK YEAST CLEAR SKUNK SCALP
+BITTY CIDER KOALA DUVET SEGUE CREME SUPER GRILL AFTER OWNER EMBER REACH NOBLY EMPTY SPEED GIPSY RECUR SMOCK DREAD MERGE
+BURST KAPPA AMITY SHAKY HOVER CAROL SNORT SYNOD FAINT HAUNT FLOUR CHAIR DETOX SHREW TENSE PLIED QUARK BURLY NOVEL WAXEN
+STOIC JERKY BLITZ BEEFY LYRIC HUSSY TOWEL QUILT BELOW BINGO WISPY BRASH SCONE TOAST EASEL SAUCY VALUE SPICE HONOR ROUTE
+SHARP BAWDY RADII SKULL PHONY ISSUE LAGER SWELL URINE GASSY TRIAL FLORA UPPER LATCH WIGHT BRICK RETRY HOLLY DECAL GRASS
+SHACK DOGMA MOVER DEFER SOBER OPTIC CRIER VYING NOMAD FLUTE HIPPO SHARK DRIER OBESE BUGLE TAWNY CHALK FEAST RUDDY PEDAL
+SCARF CRUEL BLEAT TIDAL SLUSH SEMEN WINDY DUSTY SALLY IGLOO NERDY JEWEL SHONE WHALE HYMEN ABUSE FUGUE ELBOW CRUMB PANSY
+WELSH SYRUP TERSE SUAVE GAMUT SWUNG DRAKE FREED AFIRE SHIRT GROUT ODDLY TITHE PLAID DUMMY BROOM BLIND TORCH ENEMY AGAIN
+TYING PESKY ALTER GAZER NOBLE ETHOS BRIDE EXTOL DECOR HOBBY BEAST IDIOM UTTER THESE SIXTH ALARM ERASE ELEGY SPUNK PIPER
+SCALY SCOLD HEFTY CHICK SOOTY CANAL WHINY SLASH QUAKE JOINT SWEPT PRUDE HEAVY WIELD FEMME LASSO MAIZE SHALE SCREW SPREE
+SMOKY WHIFF SCENT GLADE SPENT PRISM STOKE RIPER ORBIT COCOA GUILT HUMUS SHUSH TABLE SMIRK WRONG NOISY ALERT SHINY ELATE
+RESIN WHOLE HUNCH PIXEL POLAR HOTEL SWORD CLEAT MANGO RUMBA PUFFY FILLY BILLY LEASH CLOUT DANCE OVATE FACET CHILI PAINT
+LINER CURIO SALTY AUDIO SNAKE FABLE CLOAK NAVEL SPURT PESTO BALMY FLASH UNWED EARLY CHURN WEEDY STUMP LEASE WITTY WIMPY
+SPOOF SANER BLEND SALSA THICK WARTY MANIC BLARE SQUIB SPOON PROBE CREPE KNACK FORCE DEBUT ORDER HASTE TEETH AGENT WIDEN
+ICILY SLICE INGOT CLASH JUROR BLOOD ABODE THROW UNITY PIVOT SLEPT TROOP SPARE SEWER PARSE MORPH CACTI TACKY SPOOL DEMON
+MOODY ANNEX BEGIN FUZZY PATCH WATER LUMPY ADMIN OMEGA LIMIT TABBY MACHO AISLE SKIFF BASIS PLANK VERGE BOTCH CRAWL LOUSY
+SLAIN CUBIC RAISE WRACK GUIDE FOIST CAMEO UNDER ACTOR REVUE FRAUD HARPY SCOOP CLIMB REFER OLDEN CLERK DEBAR TALLY ETHIC
+CAIRN TULLE GHOUL HILLY CRUDE APART SCALE OLDER PLAIN SPERM BRINY ABBOT RERUN QUEST CRISP BOUND BEFIT DRAWN SUITE ITCHY
+CHEER BAGEL GUESS BROAD AXIOM CHARD CAPUT LEANT HARSH CURSE PROUD SWING OPINE TASTE LUPUS GUMBO MINER GREEN CHASM LIPID
+TOPIC ARMOR BRUSH CRANE MURAL ABLED HABIT BOSSY MAKER DUSKY DIZZY LITHE BROOK JAZZY FIFTY SENSE GIANT SURLY LEGAL FATAL
+FLUNK BEGAN PRUNE SMALL SLANT SCOFF TORUS NINNY COVEY VIPER TAKEN MORAL VOGUE OWING TOKEN ENTRY BOOTH VOTER CHIDE ELFIN
+EBONY NEIGH MINIM MELON KNEED DECOY VOILA ANKLE ARROW MUSHY TRIBE CEASE EAGER BIRTH GRAPH ODDER TERRA WEIRD TRIED CLACK
+COLOR ROUGH WEIGH UNCUT LADLE STRIP CRAFT MINUS DICEY TITAN LUCID VICAR DRESS DITCH GYPSY PASTA TAFFY FLAME SWOOP ALOOF
+SIGHT BROKE TEARY CHART SIXTY WORDY SHEER LEPER NOSEY BULGE SAVOR CLAMP FUNKY FOAMY TOXIC BRAND PLUMB DINGY BUTTE DRILL
+TRIPE BICEP TENOR KRILL WORSE DRAMA HYENA THINK RATIO COBRA BASIL SCRUM BUSED PHONE COURT CAMEL PROOF HEARD ANGEL PETAL
+POUTY THROB MAYBE FETAL SPRIG SPINE SHOUT CADET MACRO DODGY SATYR RARER BINGE TREND NUTTY LEAPT AMISS SPLIT MYRRH WIDTH
+SONAR TOWER BARON FEVER WAVER SPARK BELIE SLOOP EXPEL SMOTE BALER ABOVE NORTH WAFER SCANT FRILL AWASH SNACK SCOWL FRAIL
+DRIFT LIMBO FENCE MOTEL OUNCE WREAK REVEL TALON PRIOR KNELT CELLO FLAKE DEBUG ANODE CRIME SALVE SCOUT IMBUE PINKY STAVE
+VAGUE CHOCK FIGHT VIDEO STONE TEACH CLEFT FROST PRAWN BOOTY TWIST APNEA STIFF PLAZA LEDGE TWEAK BOARD GRANT MEDIC BACON
+CABLE BRAWL SLUNK RASPY FORUM DRONE WOMEN MUCUS BOAST TODDY COVEN TUMOR TRUER WRATH STALL STEAM AXIAL PURER DAILY TRAIL
+NICHE MEALY JUICE NYLON PLUMP MERRY FLAIL PAPAL WHEAT BERRY COWER ERECT BRUTE LEGGY SNIPE SINEW SKIER PENNY JUMPY RALLY
+UMBRA SCARY MODEM GROSS AVIAN GREED SATIN TONIC PARKA SNIFF LIVID STARK TRUMP GIDDY REUSE TABOO AVOID QUOTE DEVIL LIKEN
+GLOSS GAYER BERET NOISE GLAND DEALT SLING RUMOR OPERA THIGH TONGA FLARE WOUND WHITE BULKY ETUDE HORSE CIRCA PADDY INBOX
+FIZZY GRAIN EXERT SURGE GLEAM BELLE SALVO CRUSH FRUIT SAPPY TAKER TRACT OVINE SPIKY FRANK REEDY FILTH SPASM HEAVE MAMBO
+RIGHT CLANK TRUST LUMEN BORNE SPOOK SAUCE AMBER LATHE CARAT CORER DIRTY SLYLY AFFIX ALLOY TAINT SHEEP KINKY WOOLY MAUVE
+FLUNG YACHT FRIED QUAIL BRUNT GRIMY CURVY CAGEY RINSE DEUCE STATE GRASP MILKY BISON GRAFT SANDY BASTE FLASK HEDGE GIRLY
+SWASH BONEY COUPE ENDOW ABHOR WELCH BLADE TIGHT GEESE MISER MIRTH CLOUD CABAL LEECH CLOSE TENTH PECAN DROIT GRAIL CLONE
+GUISE RALPH TANGO BIDDY SMITH MOWER PAYEE SERIF DRAPE FIFTH SPANK GLAZE ALLOT TRUCK KAYAK VIRUS TESTY TEPEE FULLY ZONAL
+METRO CURRY GRAND BANJO AXION BEZEL OCCUR CHAIN NASAL GOOEY FILER BRACE ALLAY PUBIC RAVEN PLEAD GNASH FLAKY MUNCH DULLY
+EKING THING SLINK HURRY THEFT SHORN PYGMY RANCH WRING LEMON SHORE MAMMA FROZE NEWER STYLE MOOSE ANTIC DROWN VEGAN CHESS
+GUPPY UNION LEVER LORRY IMAGE CABBY DRUID EXACT TRUTH DOPEY SPEAR CRIED CHIME CRONY STUNK TIMID BATCH GAUGE ROTOR CRACK
+CURVE LATTE WITCH BUNCH REPEL ANVIL SOAPY METER BROTH MADLY DRIED SCENE KNOWN MAGMA ROOST WOMAN THONG PUNCH PASTY DOWNY
+KNEAD WHIRL RAPID CLANG ANGER DRIVE GOOFY EMAIL MUSIC STUFF BLEEP RIDER MECCA FOLIO SETUP VERSO QUASH FAUNA GUMMY HAPPY
+NEWLY FUSSY RELIC GUAVA RATTY FUDGE FEMUR CHIRP FORTE ALIBI WHINE PETTY GOLLY PLAIT FLECK FELON GOURD BROWN THRUM FICUS
+STASH DECRY WISER JUNTA VISOR DAUNT SCREE IMPEL AWAIT PRESS WHOSE TURBO STOOP SPEAK MANGY EYING INLET CRONE PULSE MOSSY
+STAID HENCE PINCH TEDDY SULLY SNORE RIPEN SNOWY ATTIC GOING LEACH MOUTH HOUND CLUMP TONAL BIGOT PERIL PIECE BLAME HAUTE
+SPIED UNDID INTRO BASAL SHINE GECKO RODEO GUARD STEER LOAMY SCAMP SCRAM MANLY HELLO VAUNT ORGAN FERAL KNOCK EXTRA CONDO
+ADAPT WILLY POLKA RAYON SKIRT FAITH TORSO MATCH MERCY TEPID SLEEK RISER TWIXT PEACE FLUSH CATTY LOGIN EJECT ROGER RIVAL
+UNTIE REFIT AORTA ADULT JUDGE ROWER ARTSY RURAL SHAVE
+WOODS SEALS BIRDS BENDS BEATS BELLS BOOTS BULLS BURNS BURPS CARDS CAVES CELLS CHARS CHOPS CLAMS CLAPS CLAWS
+CLUBS COALS CODES COINS COLAS CONES COOKS COOLS CORES CORDS CORES COSTS COUPS COVES COYPU CRABS CROPS CURLS
+DARES DARNS DATES DAWNS DEALS DEANS DECKS DEEDS DEEMS DEFYS DENS DENTS DESKS DIETS DIMES DINES DIPS DISCS
+DITTS DIVAS DOCKS DOLLS DOMES DORMS DOSES DRAFTS DRAWS DRUMS DUDES DUNES DUNKS DUPES DUSTS EARNS EATS EDGES
+EELS ELMS EMITS ENDS EPICS EUROS EVENS EXAMS EXITS FADES FAILS FALLS FARMS FASTS FAXES FERNS FESTS FEUDS
+FIDES FIBS FIGS FILES FILLS FILMS FINDS FIRES FIRMS FISTS FIXES FIZZ FLAGS FLAPS FLATS FLAWS FLEAS FLEES FLIES
+FLIPS FLOPS FLOWS FOALS FOBS FOES FOLDS FOLKS FOODS FOOTS FOXES FUELS FUNDS FUNKS FUSES GAINS GAMES GANGS
+GASES GATES GEARS GEMS GENES GENTS GERMS GETS GIFTS GIGS GIRLS GIVES GLADS GLOBS GLUTS GNATS GOALS GOATS
+GOBS GOES GOLFS GOONS GRABS GRADS GRIDS GRIPS GRITS GRUBS GULLS GULPS GUMPS GURUS GYMS HACKS HALOS HALTS
+HANDS HANGS HARES HARPS HAWKS HACKS HEALS HEAPS HELPS HERDS HILLS HINTS HIPPS HITS HOOPS HOPS HORNS HOSTS
+HUFFS HULKS HULLS HUMPS HUNTS HURTS HYDRA HYENAS ICONS IDLES IMPS INKS INNS IRONS ITEMS JABS JACKS JADES
+JAILS JAMS JEANS JEERS JERKS JETS JIBS JIGGS JOBS JOGS JOTS JOYS JUMPS JUGS KICKS KILLS KILNS KINGS KITES
+KNOBS KNOTS LACKS LADS LAKES LAMPS LANDS LANES LAPS LARDS LARKS LASTS LAVES LAWNS LAYS LEADS LEAKS LEANS
+LEAPS LEFTS LEGS LENDS LIFTS LIMBS LIMES LIMPS LINES LINKS LIONS LISTS LOADS LOANS LOCKS LOFTS LOGS LONGS LOOKS
+LOOPS LORDS LORES LOSES LOUTS LUMPS LUNGS LURKS MAIDS MAILS MAINS MALES MALLS MARKS MASKS MASTS MATES MAULS
+MEALS MEATS MEETS MELTS MENDS MENUS MILLS MINDS MINES MINTS MIRES MITES MIXES MOANS MOBS MOCKS MODES MOODS
+MOONS MOORS MOPES MOVES MUGS MULLS MUNKS NAILS NAMES NAPS NEEDS NESTS NETS NEWTS NICKS NODES NODS NOOKS NORMS
+NOTES NOUNS NUDES NUDGES OAKS OAFS OARS ODDS OILS OLDS ORBS ORES OUTS OVENS PACES PACKS PADS PAINS PAIRS PALMS
+PANES PANTS PAPS PARTS PASTS PATHS PAVES PAWNS PAYS PEAKS PEALS PEEKS PEELS PEERS PENS PERMS PETS PICKS PIGS
+PILES PILLS PINES PINKS PIPES PITS PLOWS PLUGS PLUMS PODS POLES POLLS POOLS POPS PORTS POSES POSTS POTS POUTS
+PREYS PRODS PROPS PUBS PULLS PUMPS PUNS PUPS PUSHES PUTS QUITS RACES RACKS RAIDS RAILS RAINS RAKES RAMS RAMPS
+RANKS RAPS RARES RATS RAVES RAYS READS REEDS REELS REINS RENDS RENTS RESTS RIBS RIDES RIGS RINDS RINGS RIPS
+RISKS ROAMS ROARS ROBES RODS ROLES ROOFS ROOMS ROOTS ROPES ROSES ROUTS ROWS RULES RUNES RUSTS SACKS SAGES
+SAILS SALES SALTS SANDS SAPS SAVES SAWS SCADS SCAGS SCAMS SCARS SCATS SCUDS SCUMS SEATS SEEKS SEEPS SENDS
+SEWS SHADS SHAGS SHAMS SHEDS SHIMS SHIPS SHOES SHOTS SHOWS SHUNS SICS SIES SIFTS SIPS SITES SKIS SLABS SLAGS
+SLAPS SLATS SLAYS SLEDS SLIPS SLOTS SLOWS SLUGS SLUMS SNAGS SNAPS SNOBS SNOTS SNUBS SOAKS SOAPS SOBS SOCKS
+SOILS SOLES SONGS SORTS SOULS SOUPS SOWS SPANS SPARS SPATS SPECS SPEDS SPEWS SPINS SPITS SPOTS SPUDS SQUADS STABS
+STEMS STEPS STEWS STIRS STOPS STUBS STUDS SUBS SUDS SUMS SUNS SUPS SURFS TABS TAGS TAILS TAKES TALES TALKS
+TANKS TANS TAPS TASKS TEARS TEES TELLS TEMPS TENDS TENS TENS TESTS TEXTS TIES TINS TIPS TIRES TOADS TOLLS TOMES
+TONES TOOLS TOPS TOWS TOWNS TOYS TRACKS TRAPS TRAYS TREES TREKS TRIES TRIPS TUBES TUGS TURNS TUSKS TWIGS TWINS
+TYKES TYES URNS USES VANES VANS VATS VEINS VENDS VENTS VESTS VIALS VIBES VIES VINES VIPERS VOIDS VOWS WADES
+WAIFS WAILS WAITS WALKS WALLS WANDS WANTS WARDS WARES WARNS WARTS WAVES WEDS WEEDS WEEKS WELLS WENDS WETS
+WHIMS WHIPS WIGS WILLS WILTS WINDS WINGS WINKS WIPES WIRES WITCHES WOLVES WOOLS WORDS WORKS WORMS WORTS WRAPS
+YARDS YARNS YELLS YIELDS YOKES YOWLS ZONES ZOOMS`.split(/\s+/).filter(w => w.length === 5);
+const UNIQUE = [...new Set(ALL_WORDS)];
+
+// Easy Peazy — common everyday words only
+const EASY_WORDS = ['ABOUT','ABOVE','ABUSE','ACHES','ACTOR','ACUTE','ADMIT','ADOPT','ADULT','AFTER',
+'AGAIN','AGENT','AGREE','AHEAD','AIMED','AIRED','ALARM','ALBUM','ALIKE','ALIVE','ALLAY','ALLEY',
+'ALLOW','ALONE','ALONG','ALOUD','ALTER','AMAZE','AMBER','AMEND','AMISS','AMPLE','AMUSE','ANGEL',
+'ANGER','ANGLE','ANGRY','ANKLE','ANNEX','ANNOY','APART','APPLE','APRON','ARISE','ARMOR','AROMA',
+'AROSE','ARSON','ASHEN','ASIDE','ASPEN','ASSET','ATONE','AUDIO','AVOID','AWAKE','AWARD','AWARE',
+'AWFUL','AWOKE','BADGE','BAKER','BARON','BASIC','BATCH','BATHE','BEACH','BEARD','BEAST','BEGAN',
+'BEING','BELLE','BELOW','BENCH','BERRY','BIBLE','BIRCH','BLACK','BLADE','BLAME','BLAND','BLANK',
+'BLAST','BLAZE','BLEAK','BLEED','BLESS','BLIND','BLINK','BLOCK','BLOOD','BLOOM','BLOWN','BLUES',
+'BLUNT','BLUSH','BOARD','BONUS','BOOST','BOTCH','BRACE','BRAKE','BRAND','BRAVE','BREAD','BREAK',
+'BREED','BRING','BROOK','BROTH','BROWN','BRUSH','BUDDY','BUILT','BULGE','BUYER','CAMEL','CANDY',
+'CANNY','CARGO','CATCH','CAUSE','CHALK','CHAOS','CHARM','CHASE','CHEAP','CHEAT','CHECK','CHESS',
+'CHEST','CHIEF','CHILL','CHOIR','CHORD','CHOSE','CHUNK','CIVIC','CLAIM','CLASH','CLIFF','CLIMB',
+'CLING','CLONE','CLOSE','CLOUD','CLOWN','COUNT','COVER','CRAFT','CRANE','CREAK','CREED','CREEP',
+'CRISP','CROSS','CRUDE','CRUEL','CRUSH','CUBIC','CURLY','CYCLE','DAILY','DAISY','DANCE','DEATH',
+'DEBUT','DEPOT','DEPTH','DIRTY','DISCO','DITCH','DODGE','DOGMA','DONOR','DOUBT','DOUGH','DRAFT',
+'DRAIN','DRAWL','DRAWN','DREAM','DRESS','DRIFT','DRINK','DROVE','DROWN','DUSTY','DWARF','DYING',
+'EAGER','EARLY','EARTH','EIGHT','ELITE','EMBER','EMPTY','ENEMY','ENJOY','ENTER','EQUAL','ERROR',
+'ESSAY','EVOKE','EXACT','EXILE','EXIST','EXTRA','FABLE','FAINT','FAIRY','FAITH','FALSE','FANCY',
+'FARCE','FATAL','FAULT','FEAST','FERAL','FETCH','FEVER','FIERY','FINAL','FIRST','FIXED','FLAME',
+'FLASH','FLESH','FLICK','FLING','FLOOD','FLOOR','FLOUR','FLUID','FLUTE','FOCUS','FOGGY','FORCE',
+'FORGE','FOUND','FRAME','FRAUD','FRESH','FROST','FROZE','FROWN','FRUIT','FUNNY','FUTON','FUZZY',
+'GHOST','GIVEN','GLASS','GLOBE','GLORY','GOING','GRACE','GRAIN','GRAND','GRAPE','GRASP','GREAT',
+'GREED','GREEN','GRIEF','GROAN','GROSS','GROUP','GROVE','GUIDE','GUSTO','HAIRY','HAPPY','HARSH',
+'HASTE','HAVEN','HEARD','HEART','HEAVE','HEDGE','HEIST','HELLO','HERBS','HINGE','HOARD','HOLLY',
+'HONOR','HOTEL','HOUND','HOUSE','HUMAN','HUMOR','IDEAL','INNER','INPUT','IRONY','IVORY','JEWEL',
+'JOINS','JOLLY','JUDGE','JUICE','JUICY','JUMBO','KNOWN','LANCE','LARGE','LASER','LAUGH','LEMON',
+'LEVEL','LIGHT','LINER','LIVER','LOCAL','LODGE','LOGIC','LOUSY','LUCKY','MAGIC','MAJOR','MAPLE',
+'MARCH','MARSH','MATCH','MAYOR','MEANS','MEDAL','MERCY','MERIT','METAL','MIGHT','MIRTH','MODEL',
+'MONEY','MONTH','MORAL','MOTOR','MOURN','MOVIE','MUDDY','MUSIC','NAIVE','NAVAL','NERVE','NIGHT',
+'NINJA','NOBLE','NOISE','NORTH','NOVEL','NUDGE','NURSE','OCEAN','OFFER','OLIVE','ORDER','OUGHT',
+'PAINT','PANIC','PASTA','PATCH','PEACE','PEACH','PEARL','PERCH','PIANO','PIECE','PILOT','PLACE',
+'PLAIN','PLANE','PLANT','PLAZA','POINT','POLAR','PORCH','POUCH','POUND','POWER','PRESS','PRICE',
+'PRIDE','PRIZE','PRONE','PROSE','PRUNE','PULSE','PUNCH','PURSE','QUEEN','QUICK','QUIET','QUITE',
+'QUOTE','RADAR','RADIO','RALLY','RANCH','RANGE','RAPID','RAVEN','REACH','REALM','REBEL','RELAX',
+'RIDGE','RIGHT','RISKY','RIVAL','RIVER','ROCKY','RODEO','ROUGH','ROUND','ROYAL','RULER','RUSTY',
+'SADLY','SAINT','SALAD','SAUCE','SCALE','SCENE','SCOPE','SCORE','SCOUT','SEIZE','SENSE','SERVE',
+'SHAKE','SHAME','SHAPE','SHARE','SHARP','SHELF','SHELL','SHIFT','SHINE','SHIRT','SHOCK','SHORE',
+'SHORT','SHOUT','SHOWN','SINCE','SKATE','SKILL','SKULL','SLEEP','SLICE','SLIDE','SMALL','SMART',
+'SMASH','SMILE','SMOKE','SNAKE','SNEAK','SOLAR','SOLVE','SORRY','SOUTH','SPACE','SPARE','SPARK',
+'SPEAK','SPEED','SPELL','SPEND','SPILL','SPINE','SPLIT','SPOON','SPORT','SPRAY','STACK','STAFF',
+'STAIN','STAND','STARK','STEAL','STEAM','STEEP','STERN','STICK','STILL','STONE','STORE','STORM',
+'STOVE','STRAP','STRAW','STRIP','STUCK','STUDY','STYLE','SUGAR','SUNNY','SUPER','SURGE','SWAMP',
+'SWEEP','SWIFT','SWIPE','SWIRL','TABLE','TANGO','TEASE','TEMPO','THERE','THIEF','THING','THINK',
+'THORN','THREE','THROW','TIGER','TOAST','TOKEN','TONIC','TORCH','TOUCH','TOUGH','TRAIN','TRASH',
+'TREAD','TREAT','TREND','TRIAL','TRICK','TROOP','TROUT','TRUCE','TRUNK','TRUST','TRUTH','TULIP',
+'TWICE','TWIST','ULCER','UNDER','UNION','UPPER','UPSET','URBAN','USAGE','UTTER','VALID','VALOR',
+'VAULT','VAPOR','VIVID','VOCAL','VOTER','VOWEL','WALTZ','WASTE','WATER','WEARY','WEAVE','WEIRD',
+'WHALE','WHEAT','WHEEL','WHILE','WHITE','WHOLE','WITCH','WITTY','WORLD','WRATH','WRONG','YOUNG','YOUTH'];
+const VALID = new Set([...UNIQUE, ...EASY_WORDS]);
+
+// ══════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════
+let answer, currentRow, currentCol, board, keyStates, gameOver;
+let streak = 0, bestStreak = 0, startTime;
+let currentUser = null;
+let gameMode = 'classic'; // 'classic' | 'blitz' | 'easy'
+let blitzInterval = null;
+let blitzSecondsLeft = 30;
+let easyHintsGiven = 0; // letters already greyed for easy mode
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+function initGame() {
+  closeOverlay('end-overlay');
+  clearBlitzTimer();
+  easyHintsGiven = 0;
+
+  const pool = gameMode === 'easy' ? EASY_WORDS : UNIQUE;
+  answer = pool[Math.floor(Math.random() * pool.length)];
+
+  currentRow = 0; currentCol = 0;
+  board = Array.from({length:6}, () => Array(5).fill(''));
+  keyStates = {}; gameOver = false;
+  startTime = Date.now();
+
+  buildGrid(); buildKeyboard();
+
+  // Easy Peazy: reveal 2 absent letters before first guess
+  if (gameMode === 'easy') {
+    setTimeout(() => giveEasyHint(), 300);
+  }
+
+  // Blitz: start countdown
+  if (gameMode === 'blitz') {
+    document.getElementById('blitz-timer-text').style.display = 'block';
+    document.getElementById('blitz-bar-wrap').style.display = 'block';
+    startBlitzTimer();
+  } else {
+    document.getElementById('blitz-timer-text').style.display = 'none';
+    document.getElementById('blitz-bar-wrap').style.display = 'none';
+  }
+}
+
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (let r = 0; r < 6; r++) {
+    const row = document.createElement('div');
+    row.className = 'row'; row.id = 'row-' + r;
+    for (let c = 0; c < 5; c++) {
+      const tile = document.createElement('div');
+      tile.className = 'tile'; tile.id = 'tile-' + r + '-' + c;
+      row.appendChild(tile);
+    }
+    grid.appendChild(row);
+  }
+}
+
+function buildKeyboard() {
+  const layout = [['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['ENTER','Z','X','C','V','B','N','M','⌫']];
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  layout.forEach(rowKeys => {
+    const div = document.createElement('div');
+    div.className = 'kb-row';
+    rowKeys.forEach(k => {
+      const btn = document.createElement('button');
+      btn.className = 'key' + (k.length > 1 ? ' wide' : '');
+      btn.textContent = k; btn.id = 'key-' + k;
+      btn.onclick = () => handleKey(k);
+      div.appendChild(btn);
+    });
+    kb.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════
+// EASY PEAZY HINTS
+// ══════════════════════════════════════════════
+function giveEasyHint() {
+  const answerLetters = new Set(answer.split(''));
+  // All alphabet letters not in answer
+  const candidates = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !answerLetters.has(l) && !keyStates[l]);
+
+  // How many to reveal: 2 on first call (row 0), 2 more on row 4-5 if still 7+ candidates
+  let count = 2;
+  if (currentRow >= 4 && candidates.length >= 7) count = 2;
+
+  const chosen = candidates.sort(() => Math.random() - 0.5).slice(0, count);
+  chosen.forEach(letter => {
+    keyStates[letter] = 'absent';
+    const el = document.getElementById('key-' + letter);
+    if (el) el.className = 'key hint-used';
+    easyHintsGiven++;
+  });
+
+  if (chosen.length > 0) showToast('Hint: ' + chosen.join(', ') + ' not in word');
+}
+
+// ══════════════════════════════════════════════
+// BLITZ TIMER
+// ══════════════════════════════════════════════
+function startBlitzTimer() {
+  blitzSecondsLeft = 30;
+  updateBlitzUI();
+  blitzInterval = setInterval(() => {
+    blitzSecondsLeft--;
+    updateBlitzUI();
+    if (blitzSecondsLeft <= 0) {
+      clearBlitzTimer();
+      gameOver = true;
+      showToast('Time\'s up!');
+      setTimeout(() => endGame(false), 600);
+    }
+  }, 1000);
+}
+
+function updateBlitzUI() {
+  const timerEl = document.getElementById('blitz-timer-text');
+  const fillEl = document.getElementById('blitz-bar-fill');
+  timerEl.textContent = blitzSecondsLeft;
+  const pct = (blitzSecondsLeft / 30) * 100;
+  fillEl.style.width = pct + '%';
+  // Colour shift: green → yellow → red
+  if (pct > 50) fillEl.style.background = 'var(--correct)';
+  else if (pct > 25) fillEl.style.background = 'var(--present)';
+  else {
+    fillEl.style.background = '#e06060';
+    timerEl.style.color = '#e06060';
+    timerEl.style.animation = 'pulse 0.5s infinite';
+  }
+  if (pct > 25) { timerEl.style.color = 'var(--accent)'; timerEl.style.animation = 'none'; }
+}
+
+function clearBlitzTimer() {
+  if (blitzInterval) { clearInterval(blitzInterval); blitzInterval = null; }
+  document.getElementById('blitz-timer-text').style.animation = 'none';
+}
+
+// ══════════════════════════════════════════════
+// GAME LOGIC
+// ══════════════════════════════════════════════
+function handleKey(k) {
+  if (gameOver) return;
+  if (k === '⌫' || k === 'BACKSPACE') {
+    if (currentCol > 0) {
+      currentCol--;
+      board[currentRow][currentCol] = '';
+      const tile = document.getElementById('tile-' + currentRow + '-' + currentCol);
+      tile.textContent = ''; tile.classList.remove('filled');
+    }
+  } else if (k === 'ENTER') {
+    submitGuess();
+  } else if (/^[A-Z]$/.test(k) && currentCol < 5) {
+    board[currentRow][currentCol] = k;
+    const tile = document.getElementById('tile-' + currentRow + '-' + currentCol);
+    tile.textContent = k; tile.classList.add('filled');
+    currentCol++;
+  }
+}
+
+function submitGuess() {
+  if (currentCol < 5) { shake(); showToast('Not enough letters'); return; }
+  const guess = board[currentRow].join('');
+  if (!VALID.has(guess)) { shake(); showToast('Not in word list'); return; }
+  revealRow(currentRow, score(guess, answer), guess);
+}
+
+function score(guess, ans) {
+  const res = Array(5).fill('absent');
+  const ansArr = ans.split('');
+  const used = Array(5).fill(false);
+  for (let i = 0; i < 5; i++) { if (guess[i] === ansArr[i]) { res[i] = 'correct'; used[i] = true; } }
+  for (let i = 0; i < 5; i++) {
+    if (res[i] === 'correct') continue;
+    for (let j = 0; j < 5; j++) { if (!used[j] && guess[i] === ansArr[j]) { res[i] = 'present'; used[j] = true; break; } }
+  }
+  return res;
+}
+
+function revealRow(row, result, guess) {
+  result.forEach((state, i) => {
+    const tile = document.getElementById('tile-' + row + '-' + i);
+    const delay = i * 300;
+    setTimeout(() => {
+      tile.style.animation = 'flipIn 0.5s ease ' + delay + 'ms both';
+      setTimeout(() => { tile.classList.add(state); updateKey(guess[i], state); }, delay + 250);
+    }, 0);
+  });
+  setTimeout(() => {
+    const won = result.every(r => r === 'correct');
+    if (won) {
+      gameOver = true;
+      clearBlitzTimer();
+      bounceRow(row);
+      setTimeout(() => endGame(true), 400);
+    } else if (row === 5) {
+      gameOver = true;
+      clearBlitzTimer();
+      setTimeout(() => endGame(false), 200);
+    } else {
+      currentRow++; currentCol = 0;
+      // Easy Peazy: extra hints on row 4 (5th guess) if many unknowns remain
+      if (gameMode === 'easy' && currentRow === 4) {
+        const ansLetters = new Set(answer.split(''));
+        const remaining = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !ansLetters.has(l) && !keyStates[l]);
+        if (remaining.length >= 7) setTimeout(() => giveEasyHint(), 300);
+      }
+    }
+  }, 5 * 300 + 250);
+}
+
+function updateKey(letter, state) {
+  const priority = {correct:3, present:2, absent:1};
+  if (!keyStates[letter] || priority[state] > priority[keyStates[letter]]) {
+    keyStates[letter] = state;
+    const el = document.getElementById('key-' + letter);
+    if (el) el.className = 'key' + (el.classList.contains('wide') ? ' wide' : '') + ' ' + state;
+  }
+}
+
+function shake() {
+  const row = document.getElementById('row-' + currentRow);
+  row.classList.add('shake');
+  row.addEventListener('animationend', () => row.classList.remove('shake'), {once:true});
+}
+
+function bounceRow(row) {
+  document.getElementById('row-' + row).querySelectorAll('.tile').forEach((t, i) => {
+    setTimeout(() => { t.style.animation = 'bounce 0.4s ease ' + (i*80) + 'ms'; }, 0);
+  });
+}
+
+function showToast(msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+
+// ══════════════════════════════════════════════
+// END GAME
+// ══════════════════════════════════════════════
+function endGame(won) {
+  const elapsed = Math.round((Date.now() - startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  if (won) { streak++; if (streak > bestStreak) bestStreak = streak; }
+  else { streak = 0; }
+  saveUserStats(won);
+
+  const msgs = ['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'];
+  document.getElementById('end-message').textContent = won ? msgs[Math.min(currentRow,5)] : 'Better Luck';
+  document.getElementById('answer-reveal').textContent = won ? `You got it in ${currentRow+1}!` : `The word was: ${answer}`;
+
+  const tilesEl = document.getElementById('end-word-tiles');
+  tilesEl.innerHTML = '';
+  answer.split('').forEach((letter, i) => {
+    const t = document.createElement('div');
+    t.className = 'end-tile correct';
+    t.textContent = letter;
+    t.style.animationDelay = (i * 80) + 'ms';
+    tilesEl.appendChild(t);
+  });
+
+  document.getElementById('stat-guesses').textContent = won ? currentRow + 1 : '✗';
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-best').textContent = bestStreak;
+  document.getElementById('end-time').innerHTML = `<span>Time: </span>${timeStr}`;
+
+  setTimeout(() => openOverlay('end-overlay'), 400);
+}
+
+// ══════════════════════════════════════════════
+// OVERLAYS
+// ══════════════════════════════════════════════
+function openOverlay(id) { document.getElementById(id).classList.add('show'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('show'); }
+function openMenu(which) {
+  if (which === 'leaderboard') { currentLbMode='classic'; currentLbType='streak'; ['classic','blitz','easy'].forEach(m => document.getElementById('lbt-'+m).classList.toggle('active',m==='classic')); ['streak','wins'].forEach(t => document.getElementById('lbtype-'+t).classList.toggle('active',t==='streak')); renderLeaderboard(); }
+  openOverlay(which + '-overlay');
+}
+function closeMenu(which) { closeOverlay(which + '-overlay'); }
+
+function openAuth(tab) {
+  switchTab(tab);
+  openOverlay('auth-overlay');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('signup-error').textContent = '';
+  ['login-username','login-password','su-username','su-email','su-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('error'); }
+  });
+  resetPwReqs();
+}
+function closeAuth() { closeOverlay('auth-overlay'); }
+
+// ══════════════════════════════════════════════
+// GAMEMODES
+// ══════════════════════════════════════════════
+function selectMode(mode) {
+  gameMode = mode;
+  localStorage.setItem('wordleMode', mode);
+  ['classic','blitz','easy'].forEach(m => {
+    document.getElementById('gcard-' + m).classList.toggle('active', m === mode);
+    document.getElementById('gbadge-' + m).style.display = m === mode ? 'block' : 'none';
+  });
+  closeMenu('gamemodes');
+  initGame();
+}
+
+function loadMode() {
+  const saved = localStorage.getItem('wordleMode') || 'classic';
+  gameMode = saved;
+  ['classic','blitz','easy'].forEach(m => {
+    document.getElementById('gcard-' + m).classList.toggle('active', m === gameMode);
+    document.getElementById('gbadge-' + m).style.display = m === gameMode ? 'block' : 'none';
+  });
+}
+
+// ══════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════
+let currentLbMode = 'classic';
+let currentLbType = 'streak'; // 'streak' or 'wins'
+
+function switchLb(mode) {
+  currentLbMode = mode;
+  ['classic','blitz','easy'].forEach(m => {
+    document.getElementById('lbt-' + m).classList.toggle('active', m === mode);
+  });
+  renderLeaderboard();
+}
+
+function switchLbType(type) {
+  currentLbType = type;
+  ['streak','wins'].forEach(t => {
+    document.getElementById('lbtype-' + t).classList.toggle('active', t === type);
+  });
+  renderLeaderboard();
+}
+
+function refreshLeaderboard() {
+  dbCache = null; // force fresh fetch
+  const btn = document.getElementById('lb-refresh-btn');
+  if (btn) { btn.classList.add('spinning'); setTimeout(() => btn.classList.remove('spinning'), 700); }
+  renderLeaderboard();
+}
+
+async function renderLeaderboard() {
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '<div class="lb-empty">Loading…</div>';
+  const users = await fetchDB();
+  const mode = currentLbMode;
+  const type = currentLbType;
+
+  let scoreKey, scoreLabel;
+  if (type === 'streak') {
+    scoreKey = mode === 'classic' ? 'bestStreak' : mode === 'blitz' ? 'blitzBest' : 'easyBest';
+    scoreLabel = 'streak';
+  } else {
+    scoreKey = mode === 'classic' ? 'totalWins' : mode === 'blitz' ? 'blitzWins' : 'easyWins';
+    scoreLabel = 'wins';
+  }
+
+  const entries = Object.entries(users)
+    .map(([name, data]) => ({ name, score: data[scoreKey] || 0 }))
+    .filter(e => e.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20);
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="lb-empty">No scores yet — play a game to appear here!</div>';
+    return;
+  }
+  const rankClasses = ['gold','silver','bronze'];
+  list.innerHTML = entries.map((e, i) => `
+    <div class="lb-row">
+      <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
+      <div class="lb-name ${e.name === currentUser ? 'you' : ''}">${e.name}${e.name === currentUser ? ' (you)' : ''}</div>
+      <div class="lb-score-col"><div class="lb-score">${e.score}</div><div class="lb-score-lbl">${scoreLabel}</div></div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+function toggleLight() {
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('toggle-light').classList.toggle('on', isLight);
+  localStorage.setItem('wordleLight', isLight ? '1' : '');
+}
+
+function applyBgColor(hex) {
+  document.body.style.backgroundImage = 'none';
+  document.body.style.backgroundColor = hex;
+  document.body.classList.add('has-bg');
+  localStorage.setItem('wordleBg', JSON.stringify({ type:'color', value:hex }));
+}
+
+function applyBgImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    document.body.style.backgroundImage = `url(${dataUrl})`;
+    document.body.classList.add('has-bg');
+    // Store — note: large images may exceed localStorage quota; warn if so
+    try {
+      localStorage.setItem('wordleBg', JSON.stringify({ type:'image', value:dataUrl }));
+    } catch(err) {
+      showToast('Image too large to save — resets on refresh');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetBg() {
+  document.body.style.backgroundImage = '';
+  document.body.style.backgroundColor = '';
+  document.body.classList.remove('has-bg');
+  localStorage.removeItem('wordleBg');
+  document.getElementById('bg-color-input').value = '#0f0f0f';
+}
+
+// ══════════════════════════════════════════════
+// KEYBOARD CUSTOMIZATION
+// ══════════════════════════════════════════════
+function applyCustomColor(type, hex) {
+  const root = document.documentElement;
+  if (type === 'correct') root.style.setProperty('--correct', hex);
+  else if (type === 'present') root.style.setProperty('--present', hex);
+  else if (type === 'absent') root.style.setProperty('--absent', hex);
+  const saved = JSON.parse(localStorage.getItem('wordleColors') || '{}');
+  saved[type] = hex;
+  localStorage.setItem('wordleColors', JSON.stringify(saved));
+}
+
+function resetCustomColors() {
+  document.documentElement.style.removeProperty('--correct');
+  document.documentElement.style.removeProperty('--present');
+  document.documentElement.style.removeProperty('--absent');
+  localStorage.removeItem('wordleColors');
+  document.getElementById('color-correct').value = '#538d4e';
+  document.getElementById('color-present').value = '#b59f3b';
+  document.getElementById('color-absent').value = '#2a2a2a';
+}
+
+function applyKeyFont(font) {
+  const fonts = {
+    mono: "'Space Mono', monospace",
+    bebas: "'Bebas Neue', sans-serif",
+    serif: 'Georgia, serif',
+    sans: 'Arial, sans-serif'
+  };
+  document.querySelectorAll('.key').forEach(k => k.style.fontFamily = fonts[font] || fonts.mono);
+  ['mono','bebas','serif','sans'].forEach(f => {
+    const btn = document.getElementById('font-btn-' + f);
+    if (btn) btn.classList.toggle('active', f === font);
+  });
+  localStorage.setItem('wordleKeyFont', font);
+}
+
+function loadCustomizations() {
+  const colors = JSON.parse(localStorage.getItem('wordleColors') || '{}');
+  if (colors.correct) { document.documentElement.style.setProperty('--correct', colors.correct); document.getElementById('color-correct').value = colors.correct; }
+  if (colors.present) { document.documentElement.style.setProperty('--present', colors.present); document.getElementById('color-present').value = colors.present; }
+  if (colors.absent)  { document.documentElement.style.setProperty('--absent',  colors.absent);  document.getElementById('color-absent').value  = colors.absent; }
+  const font = localStorage.getItem('wordleKeyFont');
+  if (font) setTimeout(() => applyKeyFont(font), 100);
+}
+
+function loadSettings() {
+  if (localStorage.getItem('wordleLight')) {
+    document.body.classList.add('light');
+    const el = document.getElementById('toggle-light');
+    if (el) el.classList.add('on');
+  }
+  const bg = JSON.parse(localStorage.getItem('wordleBg') || 'null');
+  if (bg) {
+    if (bg.type === 'color') { document.body.style.backgroundColor = bg.value; document.body.classList.add('has-bg'); document.getElementById('bg-color-input').value = bg.value; }
+    else if (bg.type === 'image') { document.body.style.backgroundImage = `url(${bg.value})`; document.body.classList.add('has-bg'); }
+  }
+}
+
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// CLOUD DB — JSONBin.io
+// ══════════════════════════════════════════════
+// ┌─────────────────────────────────────────────────────────────────────┐
+// │  SETUP: paste your JSONBin credentials below.                       │
+// │  1. Go to https://jsonbin.io and create a FREE account              │
+// │  2. Copy your Master Key from the API Keys page                     │
+// │  3. Create a new Bin with content: {}  (make it PUBLIC)             │
+// │  4. Copy the Bin ID from the URL                                    │
+// │  Paste both below and re-save this file.                            │
+// └─────────────────────────────────────────────────────────────────────┘
+const JSONBIN_KEY = '$2a$10$5Ez5BEBW..vgIuTyVdwHLOVIeYAYTiMOAqn5Za15j3nWYJ/SCjP8i';
+const JSONBIN_BIN = '69a14592d0ea881f40de26ac';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`;
+const IS_CONFIGURED = !JSONBIN_KEY.includes('PASTE') && !JSONBIN_BIN.includes('PASTE');
+
+const SESSION_KEY = 'wordleSession';
+let dbCache = null;   // in-memory cache so we don't hammer the API
+let dbDirty  = false; // true when cache has unsaved changes
+
+function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+async function fetchDB() {
+  if (!IS_CONFIGURED) { showSetupBanner(); return {}; }
+  if (dbCache) return dbCache;
+  try {
+    const r = await fetch(JSONBIN_URL + '?meta=false', {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    const j = await r.json();
+    dbCache = j && typeof j === 'object' && !j.message ? j : {};
+    return dbCache;
+  } catch(e) { console.error('DB fetch failed', e); return dbCache || {}; }
+}
+
+async function pushDB() {
+  if (!IS_CONFIGURED || !dbDirty) return;
+  dbDirty = false;
+  try {
+    await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify(dbCache)
+    });
+  } catch(e) { console.error('DB push failed', e); dbDirty = true; }
+}
+
+function setUser(username, data) {
+  if (!dbCache) dbCache = {};
+  dbCache[username] = data;
+  dbDirty = true;
+}
+
+function showSetupBanner() {
+  const b = document.getElementById('setup-banner');
+  if (b) b.style.display = 'flex';
+}
+
+async function loadUser() {
+  const session = getSession();
+  if (!session) { renderHeader(); return; }
+  const users = await fetchDB();
+  const user = users[session];
+  if (user) {
+    currentUser = session;
+    streak     = user.streak     || 0;
+    bestStreak = user.bestStreak || 0;
+  } else {
+    clearSession();
+  }
+  renderHeader();
+}
+
+async function saveUserStats(won) {
+  if (!currentUser || !dbCache) return;
+  const user = dbCache[currentUser];
+  if (!user) return;
+  user.streak     = streak;
+  user.bestStreak = bestStreak;
+  const streakKey = gameMode === 'blitz' ? 'blitzBest' : gameMode === 'easy' ? 'easyBest' : 'bestStreak';
+  if (bestStreak > (user[streakKey] || 0)) user[streakKey] = bestStreak;
+  if (won) {
+    const winsKey = gameMode === 'blitz' ? 'blitzWins' : gameMode === 'easy' ? 'easyWins' : 'totalWins';
+    user[winsKey] = (user[winsKey] || 0) + 1;
+  }
+  dbDirty = true;
+  await pushDB();
+}
+
+function renderHeader() {
+  const authEl = document.getElementById('header-auth');
+  if (currentUser) {
+    authEl.innerHTML = `<div id="user-chip"><div class="avatar">${currentUser[0].toUpperCase()}</div><span>${currentUser}</span><button id="btn-logout" onclick="doLogout()">Log out</button></div>`;
+  } else {
+    authEl.innerHTML = `<button class="btn-ghost" onclick="openAuth('login')">Log In</button><button class="btn-solid" onclick="openAuth('signup')">Sign Up</button>`;
+  }
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('form-login').style.display   = tab === 'login'   ? '' : 'none';
+  document.getElementById('form-signup').style.display  = tab === 'signup'  ? '' : 'none';
+  document.getElementById('form-forgot').style.display  = tab === 'forgot'  ? '' : 'none';
+  if (tab === 'forgot') {
+    document.getElementById('forgot-hint-box').style.display = 'none';
+    document.getElementById('forgot-error').textContent = '';
+    const fi = document.getElementById('forgot-username'); if (fi) fi.value = '';
+  }
+}
+
+async function doForgot() {
+  const username = document.getElementById('forgot-username').value.trim();
+  const errEl = document.getElementById('forgot-error');
+  errEl.textContent = '';
+  document.getElementById('forgot-hint-box').style.display = 'none';
+  if (!username) { errEl.textContent = 'Please enter your username.'; return; }
+  if (!IS_CONFIGURED) { errEl.textContent = 'Cloud DB not configured.'; return; }
+  errEl.textContent = 'Looking up…';
+  const users = await fetchDB();
+  const user = users[username];
+  if (!user) { errEl.textContent = 'Username not found.'; return; }
+  errEl.textContent = '';
+  const hint = user.hint || '(No hint saved for this account)';
+  document.getElementById('forgot-hint-text').textContent = hint;
+  document.getElementById('forgot-hint-box').style.display = 'block';
+}
+
+function validatePassword(pw) {
+  const hasLetters = (pw.match(/[a-zA-Z]/g) || []).length >= 5;
+  const hasNum = /\d/.test(pw);
+  const hasSpc = /[^a-zA-Z0-9]/.test(pw);
+  return { hasLetters, hasNum, hasSpc, valid: hasLetters && hasNum && hasSpc };
+}
+
+function checkPwStrength(pw) {
+  const { hasLetters, hasNum, hasSpc } = validatePassword(pw);
+  document.getElementById('req-len').classList.toggle('met', hasLetters);
+  document.getElementById('req-num').classList.toggle('met', hasNum);
+  document.getElementById('req-spc').classList.toggle('met', hasSpc);
+  const s = [hasLetters, hasNum, hasSpc].filter(Boolean).length;
+  const fill = document.getElementById('pw-fill');
+  fill.style.width = (s / 3 * 100) + '%';
+  fill.style.background = ['#e06060','#b59f3b','#538d4e'][s - 1] || 'transparent';
+}
+
+function resetPwReqs() {
+  ['req-len','req-num','req-spc'].forEach(id => document.getElementById(id).classList.remove('met'));
+  document.getElementById('pw-fill').style.width = '0%';
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  if (!username || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
+  if (!IS_CONFIGURED) { errEl.textContent = 'Cloud DB not configured — see setup banner.'; return; }
+  errEl.textContent = 'Checking…';
+  const users = await fetchDB();
+  const user = users[username];
+  if (!user) { errEl.textContent = 'Username not found.'; return; }
+  if (user.passwordHash !== simpleHash(password)) { errEl.textContent = 'Incorrect password.'; return; }
+  currentUser = username;
+  streak = user.streak || 0;
+  bestStreak = user.bestStreak || 0;
+  saveSession(username);
+  renderHeader(); closeAuth();
+  showToast('Welcome back, ' + username + '!');
+}
+
+async function doSignup() {
+  const username = document.getElementById('su-username').value.trim();
+  const email    = document.getElementById('su-email').value.trim();
+  const password = document.getElementById('su-password').value;
+  const errEl    = document.getElementById('signup-error');
+  errEl.textContent = '';
+  if (!username || !email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
+  if (username.length > 20) { errEl.textContent = 'Username max 20 characters.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Invalid email address.'; return; }
+  const { valid, hasLetters, hasNum } = validatePassword(password);
+  if (!valid) { errEl.textContent = !hasLetters ? 'Password needs at least 5 letters.' : !hasNum ? 'Password needs at least 1 number.' : 'Password needs at least 1 special character.'; return; }
+  if (!IS_CONFIGURED) { errEl.textContent = 'Cloud DB not configured — see setup banner.'; return; }
+  errEl.textContent = 'Creating account…';
+  const users = await fetchDB();
+  if (users[username]) { errEl.textContent = 'Username already taken.'; return; }
+  if (Object.values(users).some(u => u.email === email)) { errEl.textContent = 'Email already registered.'; return; }
+  const hint = document.getElementById('su-hint').value.trim();
+  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, bestStreak:0, blitzBest:0, easyBest:0, totalWins:0, blitzWins:0, easyWins:0, createdAt:Date.now() };
+  setUser(username, newUser);
+  await pushDB();
+  currentUser = username; streak = 0; bestStreak = 0;
+  saveSession(username); renderHeader(); closeAuth();
+  showToast('Account created! Welcome, ' + username + '!');
+}
+
+async function doLogout() {
+  currentUser = null; streak = 0; bestStreak = 0;
+  clearSession(); renderHeader(); showToast('Logged out.');
+}
+
+function simpleHash(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) { hash = ((hash << 5) + hash) ^ str.charCodeAt(i); }
+  return (hash >>> 0).toString(36);
+}
+
+// ══════════════════════════════════════════════
+// KEYBOARD INPUT
+// ══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  // Don't handle game keys when any modal is open
+  if (document.querySelector('.overlay.show')) return;
+  if (e.key === 'Backspace') handleKey('BACKSPACE');
+  else if (e.key === 'Enter') handleKey('ENTER');
+  else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+});
+
+// Close overlays by clicking backdrop
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.overlay').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+  });
+});
+
+// ══════════════════════════════════════════════
+// STARTUP
+// ══════════════════════════════════════════════
+(async () => {
+  loadSettings();
+  loadCustomizations();
+  if (!IS_CONFIGURED) showSetupBanner();
+  await loadUser();
+  loadMode();
+  initGame();
+})();
+</script>
+</body>
+</html>
