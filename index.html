@@ -154,30 +154,41 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 .gcard-badge { margin-left:auto; background:var(--correct); color:#fff; font-family:'Space Mono',monospace; font-size:0.48rem; padding:3px 7px; letter-spacing:0.08em; text-transform:uppercase; flex-shrink:0; }
 
 /* ── Leaderboard ── */
-.lb-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); }
-.lb-tab { flex:1; padding:8px 4px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.52rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:color 0.15s,border-color 0.15s; margin-bottom:-1px; }
+/* ── Leaderboard redesign ── */
+.lb-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.lb-refresh-btn { background:none; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.48rem; padding:5px 11px; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; transition:all 0.15s; border-radius:2px; }
+.lb-refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+.lb-last-updated { font-family:'Space Mono',monospace; font-size:0.44rem; color:var(--muted); letter-spacing:0.08em; }
+.lb-tab-group { margin-bottom:10px; }
+.lb-tab-label { font-family:'Space Mono',monospace; font-size:0.44rem; color:var(--muted); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:5px; padding-left:2px; }
+.lb-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:0; }
+.lb-tab { flex:1; padding:7px 4px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:color 0.15s,border-color 0.15s; margin-bottom:-1px; }
 .lb-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-.lb-type-tabs { display:flex; gap:6px; margin-bottom:14px; margin-top:10px; }
-.lb-type-tab { flex:1; padding:6px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; }
-.lb-type-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(232,213,183,0.06); }
-#lb-list { max-height:280px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; margin-bottom:4px; }
-#lb-list::-webkit-scrollbar { width:4px; }
+.lb-row-tabs { display:flex; gap:5px; margin:10px 0 12px; }
+.lb-row-tab { flex:1; padding:6px 4px; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.48rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; border-radius:2px; }
+.lb-row-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(232,213,183,0.07); }
+.lb-row-tab:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+#lb-list { max-height:260px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+#lb-list::-webkit-scrollbar { width:3px; }
 #lb-list::-webkit-scrollbar-track { background:transparent; }
 #lb-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-.lb-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
-.lb-row:last-child { border-bottom:none; }
-.lb-rank { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--muted); width:28px; text-align:center; flex-shrink:0; }
+.lb-row { display:flex; align-items:center; gap:10px; padding:9px 6px; border-radius:3px; transition:background 0.1s; }
+.lb-row:hover { background:rgba(255,255,255,0.03); }
+.lb-row.lb-row-you { background:rgba(83,141,78,0.08); border-left:2px solid var(--correct); padding-left:4px; }
+.lb-rank { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--muted); width:30px; text-align:center; flex-shrink:0; line-height:1; }
 .lb-rank.gold   { color:#ffd700; }
 .lb-rank.silver { color:#c0c0c0; }
 .lb-rank.bronze { color:#cd7f32; }
-.lb-name { font-family:'Space Mono',monospace; font-size:0.62rem; flex:1; }
+.lb-avatar { width:22px; height:22px; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; color:var(--text); flex-shrink:0; border-radius:2px; }
+.lb-avatar.you { background:var(--correct); color:#fff; }
+.lb-info { flex:1; min-width:0; }
+.lb-name { font-family:'Space Mono',monospace; font-size:0.6rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lb-name.you { color:var(--correct); }
-.lb-score-col { display:flex; flex-direction:column; align-items:flex-end; }
-.lb-score { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--accent); line-height:1; }
-.lb-score-lbl { font-family:'Space Mono',monospace; font-size:0.4rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
-.lb-empty { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--muted); text-align:center; padding:24px 0; letter-spacing:0.1em; }
-.lb-refresh-btn { background:none; border:1px solid var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:0.48rem; padding:4px 10px; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; transition:all 0.15s; margin-bottom:8px; float:right; }
-.lb-refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+.lb-score-col { display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; }
+.lb-score { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--accent); line-height:1; }
+.lb-score-lbl { font-family:'Space Mono',monospace; font-size:0.38rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
+.lb-empty { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--muted); text-align:center; padding:28px 0; letter-spacing:0.1em; }
+.lb-divider { height:1px; background:var(--border); margin:0 6px; opacity:0.5; }
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 .spinning { animation:spin 0.7s linear; display:inline-block; }
 
@@ -237,7 +248,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v9</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v10</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -341,18 +352,38 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 <!-- ══ Leaderboard Modal ══ -->
 <div class="overlay" id="leaderboard-overlay">
   <div class="modal">
-    <div class="menu-title">Leaderboard</div>
+    <div class="lb-header-row">
+      <div class="menu-title" style="margin-bottom:0">Leaderboard</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+        <button class="lb-refresh-btn" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh</button>
+        <div class="lb-last-updated" id="lb-last-updated"></div>
+      </div>
+    </div>
     <div class="menu-div"></div>
-    <div class="lb-tabs">
-      <button class="lb-tab active" id="lbt-classic" onclick="switchLb('classic')">Classic</button>
-      <button class="lb-tab" id="lbt-blitz" onclick="switchLb('blitz')">Blitz</button>
-      <button class="lb-tab" id="lbt-easy" onclick="switchLb('easy')">Easy</button>
+
+    <div class="lb-tab-group">
+      <div class="lb-tab-label">Time Period</div>
+      <div class="lb-tabs">
+        <button class="lb-tab active" id="lbt-alltime" onclick="switchLbTime('alltime')">All Time</button>
+        <button class="lb-tab" id="lbt-monthly" onclick="switchLbTime('monthly')">Monthly</button>
+        <button class="lb-tab" id="lbt-weekly" onclick="switchLbTime('weekly')">Weekly</button>
+      </div>
     </div>
-    <div class="lb-type-tabs">
-      <button class="lb-type-tab active" id="lbtype-streak" onclick="switchLbType('streak')">🔥 Best Streak</button>
-      <button class="lb-type-tab" id="lbtype-wins" onclick="switchLbType('wins')">🏆 Most Wins</button>
+
+    <div class="lb-tab-group" style="margin-top:10px;">
+      <div class="lb-tab-label">Gamemode</div>
+      <div class="lb-tabs">
+        <button class="lb-tab active" id="lbt-classic" onclick="switchLb('classic')">Classic</button>
+        <button class="lb-tab" id="lbt-blitz" onclick="switchLb('blitz')">Blitz</button>
+        <button class="lb-tab" id="lbt-easy" onclick="switchLb('easy')">Easy</button>
+      </div>
     </div>
-    <button class="lb-refresh-btn" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh</button>
+
+    <div class="lb-row-tabs">
+      <button class="lb-row-tab active" id="lbtype-streak" onclick="switchLbType('streak')">🔥 Best Streak</button>
+      <button class="lb-row-tab" id="lbtype-wins" onclick="switchLbType('wins')">🏆 Most Wins</button>
+    </div>
+
     <div id="lb-list"></div>
     <button class="menu-close" onclick="closeMenu('leaderboard')">Close</button>
   </div>
@@ -916,7 +947,13 @@ function endGame(won) {
 function openOverlay(id) { document.getElementById(id).classList.add('show'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('show'); }
 function openMenu(which) {
-  if (which === 'leaderboard') { currentLbMode='classic'; currentLbType='streak'; ['classic','blitz','easy'].forEach(m => document.getElementById('lbt-'+m).classList.toggle('active',m==='classic')); ['streak','wins'].forEach(t => document.getElementById('lbtype-'+t).classList.toggle('active',t==='streak')); renderLeaderboard(); }
+  if (which === 'leaderboard') {
+    currentLbMode='classic'; currentLbType='streak'; currentLbTime='alltime';
+    ['classic','blitz','easy'].forEach(m => document.getElementById('lbt-'+m).classList.toggle('active',m==='classic'));
+    ['streak','wins'].forEach(t => document.getElementById('lbtype-'+t).classList.toggle('active',t==='streak'));
+    ['alltime','monthly','weekly'].forEach(t => document.getElementById('lbt-'+t).classList.toggle('active',t==='alltime'));
+    renderLeaderboard();
+  }
   openOverlay(which + '-overlay');
 }
 function closeMenu(which) { closeOverlay(which + '-overlay'); }
@@ -961,29 +998,48 @@ function loadMode() {
 // LEADERBOARD
 // ══════════════════════════════════════════════
 let currentLbMode = 'classic';
-let currentLbType = 'streak'; // 'streak' or 'wins'
+let currentLbType = 'streak';
+let currentLbTime = 'alltime';
 
 function switchLb(mode) {
   currentLbMode = mode;
-  ['classic','blitz','easy'].forEach(m => {
-    document.getElementById('lbt-' + m).classList.toggle('active', m === mode);
-  });
+  ['classic','blitz','easy'].forEach(m =>
+    document.getElementById('lbt-' + m).classList.toggle('active', m === mode));
   renderLeaderboard();
 }
 
 function switchLbType(type) {
   currentLbType = type;
-  ['streak','wins'].forEach(t => {
-    document.getElementById('lbtype-' + t).classList.toggle('active', t === type);
-  });
+  ['streak','wins'].forEach(t =>
+    document.getElementById('lbtype-' + t).classList.toggle('active', t === type));
+  renderLeaderboard();
+}
+
+function switchLbTime(time) {
+  currentLbTime = time;
+  ['alltime','monthly','weekly'].forEach(t =>
+    document.getElementById('lbt-' + t).classList.toggle('active', t === time));
   renderLeaderboard();
 }
 
 function refreshLeaderboard() {
-  dbCache = null; // force fresh fetch
+  dbCache = null;
   const btn = document.getElementById('lb-refresh-btn');
   if (btn) { btn.classList.add('spinning'); setTimeout(() => btn.classList.remove('spinning'), 700); }
   renderLeaderboard();
+}
+
+function getTimePeriodKey(baseKey, time) {
+  if (time === 'alltime') return baseKey;
+  const now = new Date();
+  if (time === 'weekly') {
+    const week = `${now.getFullYear()}_w${Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7)}_${now.getMonth()}`;
+    return baseKey + '_w_' + week;
+  }
+  if (time === 'monthly') {
+    return baseKey + '_m_' + now.getFullYear() + '_' + now.getMonth();
+  }
+  return baseKey;
 }
 
 async function renderLeaderboard() {
@@ -992,33 +1048,45 @@ async function renderLeaderboard() {
   const users = await fetchDB();
   const mode = currentLbMode;
   const type = currentLbType;
+  const time = currentLbTime;
 
-  let scoreKey, scoreLabel;
+  let baseKey, scoreLabel, icon;
   if (type === 'streak') {
-    scoreKey = mode === 'classic' ? 'bestStreak' : mode === 'blitz' ? 'blitzBest' : 'easyBest';
-    scoreLabel = 'streak';
+    baseKey = mode === 'classic' ? 'bestStreak' : mode === 'blitz' ? 'blitzBest' : 'easyBest';
+    scoreLabel = 'streak'; icon = '🔥';
   } else {
-    scoreKey = mode === 'classic' ? 'totalWins' : mode === 'blitz' ? 'blitzWins' : 'easyWins';
-    scoreLabel = 'wins';
+    baseKey = mode === 'classic' ? 'totalWins' : mode === 'blitz' ? 'blitzWins' : 'easyWins';
+    scoreLabel = 'wins'; icon = '🏆';
   }
+  const scoreKey = getTimePeriodKey(baseKey, time);
 
   const entries = Object.entries(users)
-    .map(([name, data]) => ({ name, score: data[scoreKey] || 0 }))
+    .map(([name, data]) => ({ name, score: data[scoreKey] || 0, initial: name[0].toUpperCase() }))
     .filter(e => e.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
 
+  // Update last-updated timestamp
+  const lu = document.getElementById('lb-last-updated');
+  if (lu) lu.textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
   if (entries.length === 0) {
-    list.innerHTML = '<div class="lb-empty">No scores yet — play a game to appear here!</div>';
+    const periodLabel = time === 'weekly' ? 'this week' : time === 'monthly' ? 'this month' : 'yet';
+    list.innerHTML = `<div class="lb-empty">No scores ${periodLabel} — play to appear here!</div>`;
     return;
   }
+
   const rankClasses = ['gold','silver','bronze'];
-  list.innerHTML = entries.map((e, i) => `
-    <div class="lb-row">
-      <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
-      <div class="lb-name ${e.name === currentUser ? 'you' : ''}">${e.name}${e.name === currentUser ? ' (you)' : ''}</div>
+  list.innerHTML = entries.map((e, i) => {
+    const isYou = e.name === currentUser;
+    return `<div class="lb-row${isYou ? ' lb-row-you' : ''}">
+      <div class="lb-rank ${rankClasses[i] || ''}">${i < 3 ? ['①','②','③'][i] : i + 1}</div>
+      <div class="lb-avatar${isYou ? ' you' : ''}">${e.initial}</div>
+      <div class="lb-info"><div class="lb-name${isYou ? ' you' : ''}">${e.name}${isYou ? ' ✦' : ''}</div></div>
       <div class="lb-score-col"><div class="lb-score">${e.score}</div><div class="lb-score-lbl">${scoreLabel}</div></div>
-    </div>`).join('');
+    </div>
+    ${i < entries.length - 1 ? '<div class="lb-divider"></div>' : ''}`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════
@@ -1210,6 +1278,18 @@ async function saveUserStats(won) {
   if (won) {
     const winsKey = gameMode === 'blitz' ? 'blitzWins' : gameMode === 'easy' ? 'easyWins' : 'totalWins';
     user[winsKey] = (user[winsKey] || 0) + 1;
+    // Also record weekly and monthly wins
+    const now = new Date();
+    const weekSuffix = '_w_' + now.getFullYear() + '_w' + Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7) + '_' + now.getMonth();
+    const monthSuffix = '_m_' + now.getFullYear() + '_' + now.getMonth();
+    user[winsKey + weekSuffix]  = (user[winsKey + weekSuffix]  || 0) + 1;
+    user[winsKey + monthSuffix] = (user[winsKey + monthSuffix] || 0) + 1;
+    // Also record weekly/monthly best streak
+    const streakKey = gameMode === 'blitz' ? 'blitzBest' : gameMode === 'easy' ? 'easyBest' : 'bestStreak';
+    const wStreakKey = streakKey + weekSuffix;
+    const mStreakKey = streakKey + monthSuffix;
+    if (bestStreak > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreak;
+    if (bestStreak > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreak;
   }
   dbDirty = true;
   await pushDB();
