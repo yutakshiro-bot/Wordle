@@ -179,8 +179,9 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 .lb-rank.gold   { color:#ffd700; }
 .lb-rank.silver { color:#c0c0c0; }
 .lb-rank.bronze { color:#cd7f32; }
-.lb-avatar { width:22px; height:22px; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; color:var(--text); flex-shrink:0; border-radius:2px; }
+.lb-avatar { width:28px; height:28px; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; color:var(--text); flex-shrink:0; border-radius:50%; overflow:hidden; }
 .lb-avatar.you { background:var(--correct); color:#fff; }
+.lb-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 .lb-info { flex:1; min-width:0; }
 .lb-name { font-family:'Space Mono',monospace; font-size:0.6rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lb-name.you { color:var(--correct); }
@@ -249,7 +250,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v15</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v16</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -821,7 +822,10 @@ const VALID_ALL = new Set([
 // GAME STATE
 // ══════════════════════════════════════════════
 let answer, currentRow, currentCol, board, keyStates, gameOver;
-let streak = 0, bestStreak = 0, startTime;
+// Per-mode streaks — each mode tracks independently so they never bleed into each other
+let streaks     = { classic:0, blitz:0, easy:0, custom:0 };
+let bestStreaks  = { classic:0, blitz:0, easy:0, custom:0 };
+let startTime;
 let currentUser = null;
 let gameMode = 'classic'; // 'classic' | 'blitz' | 'easy' | 'custom'
 let customWordLength = 5; // used when gameMode === 'custom'
@@ -1105,8 +1109,8 @@ function endGame(won) {
   const secs = elapsed % 60;
   const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
-  if (won) { streak++; if (streak > bestStreak) bestStreak = streak; }
-  else { streak = 0; }
+  if (won) { streaks[gameMode]++; if (streaks[gameMode] > bestStreaks[gameMode]) bestStreaks[gameMode] = streaks[gameMode]; }
+  else { streaks[gameMode] = 0; }
   saveUserStats(won);
 
   const msgs = ['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'];
@@ -1127,8 +1131,8 @@ function endGame(won) {
   });
 
   document.getElementById('stat-guesses').textContent = won ? currentRow + 1 : '✗';
-  document.getElementById('stat-streak').textContent = streak;
-  document.getElementById('stat-best').textContent = bestStreak;
+  document.getElementById('stat-streak').textContent = streaks[gameMode];
+  document.getElementById('stat-best').textContent = bestStreaks[gameMode];
   document.getElementById('end-time').innerHTML = `<span>Time: </span>${timeStr}`;
 
   setTimeout(() => {
@@ -1298,7 +1302,11 @@ async function renderLeaderboard() {
   const scoreKey = getTimePeriodKey(baseKey, time);
 
   const entries = Object.entries(users)
-    .map(([name, data]) => ({ name, score: data[scoreKey] || 0, initial: name[0].toUpperCase() }))
+    .filter(([name]) => name !== 'init')
+    .map(([name, data]) => {
+      const photo = localStorage.getItem('wordleProfilePhoto_' + name);
+      return { name, score: data[scoreKey] || 0, initial: name[0].toUpperCase(), photo };
+    })
     .filter(e => e.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
@@ -1316,9 +1324,12 @@ async function renderLeaderboard() {
   const rankClasses = ['gold','silver','bronze'];
   list.innerHTML = entries.map((e, i) => {
     const isYou = e.name === currentUser;
+    const avatarInner = e.photo
+      ? `<img src="${e.photo}" alt="${e.initial}">`
+      : e.initial;
     return `<div class="lb-row${isYou ? ' lb-row-you' : ''}">
       <div class="lb-rank ${rankClasses[i] || ''}">${i < 3 ? ['①','②','③'][i] : i + 1}</div>
-      <div class="lb-avatar${isYou ? ' you' : ''}">${e.initial}</div>
+      <div class="lb-avatar${isYou ? ' you' : ''}">${avatarInner}</div>
       <div class="lb-info"><div class="lb-name${isYou ? ' you' : ''}">${e.name}${isYou ? ' ✦' : ''}</div></div>
       <div class="lb-score-col"><div class="lb-score">${e.score}</div><div class="lb-score-lbl">${scoreLabel}</div></div>
     </div>
@@ -1377,8 +1388,8 @@ async function renderStats() {
   document.getElementById('st-wins-easy').textContent    = user.easyWins   || 0;
   document.getElementById('st-wins-custom').textContent  = user.customWins || 0;
 
-  // Summary
-  document.getElementById('st-current-streak').textContent = user.streak || 0;
+  // Summary — current streak shows the active mode's streak
+  document.getElementById('st-current-streak').textContent = streaks[gameMode] || 0;
   const totalW = (user.totalWins||0) + (user.blitzWins||0) + (user.easyWins||0) + (user.customWins||0);
   document.getElementById('st-total-wins').textContent = totalW;
 }
@@ -1575,8 +1586,15 @@ async function loadUser() {
   const user = users[session];
   if (user) {
     currentUser = session;
-    streak     = user.streak     || 0;
-    bestStreak = user.bestStreak || 0;
+    // Load per-mode streaks — fall back to legacy bestStreak for classic
+    streaks.classic    = user.classicStreak    || user.streak     || 0;
+    streaks.blitz      = user.blitzStreak      || 0;
+    streaks.easy       = user.easyStreak       || 0;
+    streaks.custom     = user.customStreak     || 0;
+    bestStreaks.classic = user.bestStreak       || 0;
+    bestStreaks.blitz   = user.blitzBest        || 0;
+    bestStreaks.easy    = user.easyBest         || 0;
+    bestStreaks.custom  = user.customBest       || 0;
   } else {
     clearSession();
   }
@@ -1591,21 +1609,30 @@ async function saveUserStats(won) {
   const user = users[currentUser];
   if (!user) return;
 
-  // Ensure wins fields exist for old accounts
-  if (user.totalWins  === undefined) user.totalWins  = 0;
-  if (user.blitzWins  === undefined) user.blitzWins  = 0;
-  if (user.easyWins   === undefined) user.easyWins   = 0;
-  if (user.customWins === undefined) user.customWins = 0;
-  if (user.blitzBest  === undefined) user.blitzBest  = 0;
-  if (user.easyBest   === undefined) user.easyBest   = 0;
-  if (user.customBest === undefined) user.customBest = 0;
+  // Ensure all fields exist for old accounts
+  if (user.totalWins   === undefined) user.totalWins   = 0;
+  if (user.blitzWins   === undefined) user.blitzWins   = 0;
+  if (user.easyWins    === undefined) user.easyWins    = 0;
+  if (user.customWins  === undefined) user.customWins  = 0;
+  if (user.blitzBest   === undefined) user.blitzBest   = 0;
+  if (user.easyBest    === undefined) user.easyBest    = 0;
+  if (user.customBest  === undefined) user.customBest  = 0;
+  if (user.classicStreak === undefined) user.classicStreak = user.streak || 0;
+  if (user.blitzStreak   === undefined) user.blitzStreak   = 0;
+  if (user.easyStreak    === undefined) user.easyStreak    = 0;
+  if (user.customStreak  === undefined) user.customStreak  = 0;
 
-  user.streak     = streak;
-  user.bestStreak = bestStreak;
+  // Save per-mode current streaks
+  user.classicStreak = streaks.classic;
+  user.blitzStreak   = streaks.blitz;
+  user.easyStreak    = streaks.easy;
+  user.customStreak  = streaks.custom;
+  // Keep legacy streak field in sync with classic for backwards compat
+  user.streak = streaks.classic;
 
+  // Per-mode best streaks — only update the mode being played
   const streakKey = gameMode === 'blitz' ? 'blitzBest' : gameMode === 'easy' ? 'easyBest' : gameMode === 'custom' ? 'customBest' : 'bestStreak';
-  if (streak > (user[streakKey] || 0)) user[streakKey] = streak;
-  if (bestStreak > (user.bestStreak || 0)) user.bestStreak = bestStreak;
+  if (bestStreaks[gameMode] > (user[streakKey] || 0)) user[streakKey] = bestStreaks[gameMode];
 
   if (won) {
     const winsKey = gameMode === 'blitz' ? 'blitzWins' : gameMode === 'easy' ? 'easyWins' : gameMode === 'custom' ? 'customWins' : 'totalWins';
@@ -1623,11 +1650,11 @@ async function saveUserStats(won) {
     user[winsKey + weekSuffix]  = (user[winsKey + weekSuffix]  || 0) + 1;
     user[winsKey + monthSuffix] = (user[winsKey + monthSuffix] || 0) + 1;
 
-    // Time-period streaks
+    // Time-period best streaks (only for this mode)
     const wStreakKey = streakKey + weekSuffix;
     const mStreakKey = streakKey + monthSuffix;
-    if (bestStreak > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreak;
-    if (bestStreak > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreak;
+    if (bestStreaks[gameMode] > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreaks[gameMode];
+    if (bestStreaks[gameMode] > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreaks[gameMode];
   }
   dbDirty = true;
   await pushDB();
@@ -1715,8 +1742,14 @@ async function doLogin() {
   if (!user) { errEl.textContent = 'Username not found.'; return; }
   if (user.passwordHash !== simpleHash(password)) { errEl.textContent = 'Incorrect password.'; return; }
   currentUser = username;
-  streak = user.streak || 0;
-  bestStreak = user.bestStreak || 0;
+  streaks.classic    = user.classicStreak || user.streak || 0;
+  streaks.blitz      = user.blitzStreak   || 0;
+  streaks.easy       = user.easyStreak    || 0;
+  streaks.custom     = user.customStreak  || 0;
+  bestStreaks.classic = user.bestStreak    || 0;
+  bestStreaks.blitz   = user.blitzBest     || 0;
+  bestStreaks.easy    = user.easyBest      || 0;
+  bestStreaks.custom  = user.customBest    || 0;
   saveSession(username);
   renderHeader(); closeAuth();
   showToast('Welcome back, ' + username + '!');
@@ -1739,16 +1772,20 @@ async function doSignup() {
   if (users[username]) { errEl.textContent = 'Username already taken.'; return; }
   if (Object.values(users).some(u => u.email === email)) { errEl.textContent = 'Email already registered.'; return; }
   const hint = document.getElementById('su-hint').value.trim();
-  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, createdAt:Date.now() };
+  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, classicStreak:0, blitzStreak:0, easyStreak:0, customStreak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, createdAt:Date.now() };
   setUser(username, newUser);
   await pushDB();
-  currentUser = username; streak = 0; bestStreak = 0;
+  currentUser = username;
+  streaks     = { classic:0, blitz:0, easy:0, custom:0 };
+  bestStreaks  = { classic:0, blitz:0, easy:0, custom:0 };
   saveSession(username); renderHeader(); closeAuth();
   showToast('Account created! Welcome, ' + username + '!');
 }
 
 async function doLogout() {
-  currentUser = null; streak = 0; bestStreak = 0;
+  currentUser = null;
+  streaks    = { classic:0, blitz:0, easy:0, custom:0 };
+  bestStreaks = { classic:0, blitz:0, easy:0, custom:0 };
   clearSession(); renderHeader(); showToast('Logged out.');
 }
 
