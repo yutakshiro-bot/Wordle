@@ -250,7 +250,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v16</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v17</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -1304,7 +1304,8 @@ async function renderLeaderboard() {
   const entries = Object.entries(users)
     .filter(([name]) => name !== 'init')
     .map(([name, data]) => {
-      const photo = localStorage.getItem('wordleProfilePhoto_' + name);
+      // Photo comes from the DB record (cross-device), fall back to local cache
+      const photo = data.photo || localStorage.getItem('wordleProfilePhoto_' + name) || null;
       return { name, score: data[scoreKey] || 0, initial: name[0].toUpperCase(), photo };
     })
     .filter(e => e.score > 0)
@@ -1351,13 +1352,26 @@ async function renderStats() {
   notLoggedIn.style.display = 'none';
   content.style.display = 'block';
 
-  // Load local profile photo
+  // Fill username display
+  document.getElementById('stats-username').textContent = currentUser;
+
+  // Fetch user data
+  const users = await fetchDB();
+  const user = users[currentUser] || {};
+
+  // Load profile photo — check localStorage first (fast), fall back to DB (cross-device)
   const photoKey = 'wordleProfilePhoto_' + currentUser;
-  const savedPhoto = localStorage.getItem(photoKey);
+  const localPhoto = localStorage.getItem(photoKey);
+  const cloudPhoto = user.photo || null;
+  const photo = localPhoto || cloudPhoto;
   const photoEl = document.getElementById('stats-avatar-photo');
   const letterEl = document.getElementById('stats-avatar-letter');
-  if (savedPhoto) {
-    photoEl.src = savedPhoto;
+  if (photo) {
+    // Cache cloud photo locally so it's fast next time
+    if (!localPhoto && cloudPhoto) {
+      try { localStorage.setItem(photoKey, cloudPhoto); } catch(err) {}
+    }
+    photoEl.src = photo;
     photoEl.style.display = 'block';
     letterEl.style.display = 'none';
   } else {
@@ -1365,13 +1379,6 @@ async function renderStats() {
     letterEl.style.display = 'block';
     letterEl.textContent = currentUser[0].toUpperCase();
   }
-
-  // Fill username display
-  document.getElementById('stats-username').textContent = currentUser;
-
-  // Fetch user data
-  const users = await fetchDB();
-  const user = users[currentUser] || {};
   document.getElementById('stats-email').textContent = user.email || '';
   const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '';
   document.getElementById('stats-joined').textContent = joined ? 'Joined ' + joined : '';
@@ -1398,20 +1405,38 @@ function uploadProfilePhoto(input) {
   if (!input.files[0] || !currentUser) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const data = e.target.result;
-    try {
-      localStorage.setItem('wordleProfilePhoto_' + currentUser, data);
-    } catch(err) {
-      showToast('Image too large to save');
-      return;
-    }
-    const photoEl = document.getElementById('stats-avatar-photo');
-    const letterEl = document.getElementById('stats-avatar-letter');
-    if (photoEl) { photoEl.src = data; photoEl.style.display = 'block'; }
-    if (letterEl) letterEl.style.display = 'none';
-    // Also update header avatar
-    renderHeader();
-    showToast('Profile photo updated!');
+    const img = new Image();
+    img.onload = async () => {
+      // Compress to max 80px square so it fits in JSONBin easily
+      const canvas = document.createElement('canvas');
+      const MAX = 80;
+      const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+
+      // Save to localStorage as fast local cache
+      try { localStorage.setItem('wordleProfilePhoto_' + currentUser, compressed); } catch(err) {}
+
+      // Save to cloud DB so it syncs across devices
+      dbCache = null;
+      const users = await fetchDB();
+      if (users[currentUser]) {
+        users[currentUser].photo = compressed;
+        dbDirty = true;
+        await pushDB();
+        dbCache = null;
+      }
+
+      const photoEl = document.getElementById('stats-avatar-photo');
+      const letterEl = document.getElementById('stats-avatar-letter');
+      if (photoEl) { photoEl.src = compressed; photoEl.style.display = 'block'; }
+      if (letterEl) letterEl.style.display = 'none';
+      renderHeader();
+      showToast('Profile photo saved!');
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -1595,6 +1620,10 @@ async function loadUser() {
     bestStreaks.blitz   = user.blitzBest        || 0;
     bestStreaks.easy    = user.easyBest         || 0;
     bestStreaks.custom  = user.customBest       || 0;
+    // Sync cloud photo to localStorage so the header avatar shows immediately
+    if (user.photo) {
+      try { localStorage.setItem('wordleProfilePhoto_' + session, user.photo); } catch(err) {}
+    }
   } else {
     clearSession();
   }
@@ -1750,6 +1779,10 @@ async function doLogin() {
   bestStreaks.blitz   = user.blitzBest     || 0;
   bestStreaks.easy    = user.easyBest      || 0;
   bestStreaks.custom  = user.customBest    || 0;
+  // Sync cloud photo to localStorage so avatar shows immediately
+  if (user.photo) {
+    try { localStorage.setItem('wordleProfilePhoto_' + username, user.photo); } catch(err) {}
+  }
   saveSession(username);
   renderHeader(); closeAuth();
   showToast('Welcome back, ' + username + '!');
