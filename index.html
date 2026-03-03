@@ -179,9 +179,8 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 .lb-rank.gold   { color:#ffd700; }
 .lb-rank.silver { color:#c0c0c0; }
 .lb-rank.bronze { color:#cd7f32; }
-.lb-avatar { width:28px; height:28px; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; color:var(--text); flex-shrink:0; border-radius:50%; overflow:hidden; }
+.lb-avatar { width:22px; height:22px; background:var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:0.8rem; color:var(--text); flex-shrink:0; border-radius:2px; }
 .lb-avatar.you { background:var(--correct); color:#fff; }
-.lb-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 .lb-info { flex:1; min-width:0; }
 .lb-name { font-family:'Space Mono',monospace; font-size:0.6rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lb-name.you { color:var(--correct); }
@@ -250,7 +249,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v17</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v14</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -395,7 +394,6 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
         <button class="lb-tab active" id="lbt-classic" onclick="switchLb('classic')">Classic</button>
         <button class="lb-tab" id="lbt-blitz" onclick="switchLb('blitz')">Blitz</button>
         <button class="lb-tab" id="lbt-easy" onclick="switchLb('easy')">Easy</button>
-        <button class="lb-tab" id="lbt-custom" onclick="switchLb('custom')">Custom</button>
       </div>
     </div>
 
@@ -653,70 +651,39 @@ SPIED UNDID INTRO BASAL SHINE GECKO RODEO GUARD STEER LOAMY SCAMP SCRAM MANLY HE
 ADAPT WILLY POLKA RAYON SKIRT FAITH TORSO MATCH MERCY TEPID SLEEK RISER TWIXT PEACE FLUSH CATTY LOGIN EJECT ROGER RIVAL
 UNTIE REFIT AORTA ADULT JUDGE ROWER ARTSY RURAL SHAVE
 WOODS SEALS BIRDS BENDS BEATS BELLS BOOTS BULLS BURNS BURPS CARDS CAVES CELLS CHARS CHOPS CLAMS CLAPS CLAWS
-CLUBS COALS CODES COINS COLAS CONES COOKS COOLS CORES CORDS COSTS COUPS COVES CRABS CROPS CURLS
-DARES DARNS DATES DAWNS DEALS DEANS DECKS DEEDS DEEMS DENTS DESKS DIETS DIMES DINES DISCS
-DITTS DIVAS DOCKS DOLLS DOMES DORMS DOSES DRAWS DRUMS DUDES DUNES DUNKS DUPES DUSTS EARNS EDGES
-EMITS EPICS EUROS EVENS EXAMS EXITS FADES FAILS FALLS FARMS FASTS FAXES FERNS FESTS FEUDS
-FIDES FIBS FILES FILLS FILMS FINDS FIRES FIRMS FISTS FIXES FLAGS FLAPS FLATS FLAWS FLEAS FLEES FLIES
-FLIPS FLOPS FLOWS FOALS FOLDS FOODS FOXES FUELS FUNDS FUNKS FUSES GAINS GAMES GANGS
-GASES GATES GEARS GENES GERMS GIFTS GIGS GIRLS GIVES GLOBS GNATS GOALS GOATS
-GRABS GRADS GRIDS GRIPS GRITS GRUBS GULLS GULPS GYMS HALOS HALTS
-HANDS HANGS HARES HARPS HAWKS HEALS HEAPS HELPS HERDS HILLS HINTS HOOPS HORNS HOSTS
-HUFFS HULKS HULLS HUMPS HUNTS HURTS ICONS INKS IRONS ITEMS JABS JACKS JADES
-JAILS JEANS JEERS JERKS JIBS JOBS JOGS JOTS JOYS JUMPS JUGS KICKS KILLS KILNS KINGS KITES
-KNOBS KNOTS LACKS LAKES LAMPS LANDS LANES LARKS LASTS LAWNS LEADS LEAKS LEANS
-LEAPS LEFTS LENDS LIFTS LIMBS LIMES LIMPS LINES LINKS LIONS LISTS LOADS LOANS LOCKS LOFTS LONGS
+CLUBS COALS CODES COINS COLAS CONES COOKS COOLS CORES CORDS CORES COSTS COUPS COVES COYPU CRABS CROPS CURLS
+DARES DARNS DATES DAWNS DEALS DEANS DECKS DEEDS DEEMS DEFYS DENS DENTS DESKS DIETS DIMES DINES DIPS DISCS
+DITTS DIVAS DOCKS DOLLS DOMES DORMS DOSES DRAFTS DRAWS DRUMS DUDES DUNES DUNKS DUPES DUSTS EARNS EATS EDGES
+EELS ELMS EMITS ENDS EPICS EUROS EVENS EXAMS EXITS FADES FAILS FALLS FARMS FASTS FAXES FERNS FESTS FEUDS
+FIDES FIBS FIGS FILES FILLS FILMS FINDS FIRES FIRMS FISTS FIXES FIZZ FLAGS FLAPS FLATS FLAWS FLEAS FLEES FLIES
+FLIPS FLOPS FLOWS FOALS FOBS FOES FOLDS FOLKS FOODS FOOTS FOXES FUELS FUNDS FUNKS FUSES GAINS GAMES GANGS
+GASES GATES GEARS GEMS GENES GENTS GERMS GETS GIFTS GIGS GIRLS GIVES GLADS GLOBS GLUTS GNATS GOALS GOATS
+GOBS GOES GOLFS GOONS GRABS GRADS GRIDS GRIPS GRITS GRUBS GULLS GULPS GUMPS GURUS GYMS HACKS HALOS HALTS
+HANDS HANGS HARES HARPS HAWKS HACKS HEALS HEAPS HELPS HERDS HILLS HINTS HIPPS HITS HOOPS HOPS HORNS HOSTS
+HUFFS HULKS HULLS HUMPS HUNTS HURTS HYDRA HYENAS ICONS IDLES IMPS INKS INNS IRONS ITEMS JABS JACKS JADES
+JAILS JAMS JEANS JEERS JERKS JETS JIBS JIGGS JOBS JOGS JOTS JOYS JUMPS JUGS KICKS KILLS KILNS KINGS KITES
+KNOBS KNOTS LACKS LADS LAKES LAMPS LANDS LANES LAPS LARDS LARKS LASTS LAVES LAWNS LAYS LEADS LEAKS LEANS
+LEAPS LEFTS LEGS LENDS LIFTS LIMBS LIMES LIMPS LINES LINKS LIONS LISTS LOADS LOANS LOCKS LOFTS LOGS LONGS LOOKS
 LOOPS LORDS LORES LOSES LOUTS LUMPS LUNGS LURKS MAIDS MAILS MAINS MALES MALLS MARKS MASKS MASTS MATES MAULS
-MEALS MEATS MEETS MELTS MENDS MENUS MILLS MINDS MINES MINTS MITES MIXES MOANS MOCKS MODES MOODS
-MOONS MOORS MOPES MOVES MULLS NAILS NAMES NEEDS NESTS NETS NICKS NODES NOOKS NORMS
-NOUNS NUDES OAKS OARS ODDS OILS ORBS ORES PACES PACKS PADS PAINS PAIRS PALMS
-PANES PANTS PARTS PASTS PATHS PAVES PAWNS PEAKS PEALS PEEKS PEELS PEERS PICKS PIGS
-PILES PILLS PINES PINKS PIPES PLOWS PLUGS PLUMS POLES POLLS POOLS PORTS POSES POSTS POUTS
-PREYS PRODS PROPS PULLS PUMPS PUNS PUPS RACES RACKS RAIDS RAILS RAINS RAKES RAMS RAMPS
-RANKS RAPS RATS RAVES RAYS READS REEDS REELS REINS RENDS RENTS RESTS RIBS RIDES RIGS RINDS RINGS RIPS
+MEALS MEATS MEETS MELTS MENDS MENUS MILLS MINDS MINES MINTS MIRES MITES MIXES MOANS MOBS MOCKS MODES MOODS
+MOONS MOORS MOPES MOVES MUGS MULLS MUNKS NAILS NAMES NAPS NEEDS NESTS NETS NEWTS NICKS NODES NODS NOOKS NORMS
+NOTES NOUNS NUDES NUDGES OAKS OAFS OARS ODDS OILS OLDS ORBS ORES OUTS OVENS PACES PACKS PADS PAINS PAIRS PALMS
+PANES PANTS PAPS PARTS PASTS PATHS PAVES PAWNS PAYS PEAKS PEALS PEEKS PEELS PEERS PENS PERMS PETS PICKS PIGS
+PILES PILLS PINES PINKS PIPES PITS PLOWS PLUGS PLUMS PODS POLES POLLS POOLS POPS PORTS POSES POSTS POTS POUTS
+PREYS PRODS PROPS PUBS PULLS PUMPS PUNS PUPS PUSHES PUTS QUITS RACES RACKS RAIDS RAILS RAINS RAKES RAMS RAMPS
+RANKS RAPS RARES RATS RAVES RAYS READS REEDS REELS REINS RENDS RENTS RESTS RIBS RIDES RIGS RINDS RINGS RIPS
 RISKS ROAMS ROARS ROBES RODS ROLES ROOFS ROOMS ROOTS ROPES ROSES ROUTS ROWS RULES RUNES RUSTS SACKS SAGES
-SAILS SALES SALTS SANDS SAPS SAVES SAWS SCADS SCAMS SCARS SEATS SEEKS SEEPS SENDS
-SEWS SHAMS SHEDS SHIPS SHOES SHOTS SHOWS SHUNS SIFTS SIPS SITES SLABS SLAGS
+SAILS SALES SALTS SANDS SAPS SAVES SAWS SCADS SCAGS SCAMS SCARS SCATS SCUDS SCUMS SEATS SEEKS SEEPS SENDS
+SEWS SHADS SHAGS SHAMS SHEDS SHIMS SHIPS SHOES SHOTS SHOWS SHUNS SICS SIES SIFTS SIPS SITES SKIS SLABS SLAGS
 SLAPS SLATS SLAYS SLEDS SLIPS SLOTS SLOWS SLUGS SLUMS SNAGS SNAPS SNOBS SNOTS SNUBS SOAKS SOAPS SOBS SOCKS
-SOILS SOLES SONGS SORTS SOULS SOUPS SOWS SPANS SPARS SPATS SPECS SPEWS SPINS SPITS SPOTS SPUDS STABS
-STEMS STEPS STEWS STIRS STOPS STUBS STUDS SUBS SUMS SUNS TABS TAGS TAILS TALES TALKS
-TANKS TANS TAPS TASKS TEARS TELLS TEMPS TENDS TESTS TEXTS TIES TINS TIPS TIRES TOADS TOLLS TOMES
-TONES TOOLS TOPS TOWS TOWNS TOYS TRAPS TRAYS TREES TREKS TRIES TRIPS TUBES TUGS TURNS TUSKS TWIGS TWINS
-URNS VANES VANS VATS VEINS VENDS VENTS VESTS VIALS VIBES VINES VOIDS VOWS WADES
-WAIFS WAILS WAITS WALKS WALLS WANDS WANTS WARDS WARES WARNS WARTS WAVES WEDS WEEDS WEEKS WELLS WENDS
-WHIMS WHIPS WIGS WILLS WILTS WINDS WINGS WINKS WIPES WIRES WORDS WORKS WORMS WORTS WRAPS
-YARDS YARNS YELLS YOKES ZONES ZOOMS
-ACHED ACTOR ADORE ADORN ADULT AFFIX AGILE AHOLD AIDED ALBUM ALERT ALGAE ALIBI ALLAY ALLOT ALOFT AMBLE
-AMISS ANKLE ANNEX ANNUL ANTIC ANTSY ANVIL AORTA ARDOR ARGON AROSE ARSON ARTSY ASKEW ASPIC ATOLL AWASH
-AXIAL AZURE BABBY BABEL BAGEL BALMY BANDY BASTE BAWDY BEIGE BERTH BEVEL BIOME BIRCH BISON BITSY BLOKE
-BONNY BOOZE BORAX BOTCH BOUGH BRACE BRASH BRASSY BRAZE BRISK BROIL BROOK BRUNT BRUSK BUDDY BULGY BUMPY
-BUNNY BURLY BUSHY BYLAW CABAL CACTI CADDY CAIRN CAMEL CANDY CANON CAPER CAPUT CAROL CASTE CATTY CAULK
-CHAFE CHAMP CHAOS CHARD CHASM CHIDE CHINK CHIRP CHIVE CHOMP CINCH CLAMP CLEFT CLOAK CLONK CLOUT CLUCK
-COMET COMFY CONCH COPSE CORNY COVEN COWER CRAMP CREAK CREEP CRIMP CROAK CRONY CROON CRUSE CRYPT CUBIT
-CURVY DALLY DANDY DARKY DATED DAUNT DEBTS DECOY DEITY DELTA DERPY DIMLY DINGY DITZY DIVAN DIVVY DODGY
-DOLLY DOPEY DOTTY DOWDY DROLL DROOL DRUSY DUCHY DUNCE DUSKY DUSTY EAGER EBONY EDIFY EERIE EGRET ELFIN
-EMCEE ENSUE EPOCH ERECT ETHIC ETHOS EVICT EXALT EXACT EXPEL EXTOL EXUDE FABLE FAMED FARCE FATTY FECAL
-FERNY FETID FINCH FINKY FIZZY FJORD FLACK FLARE FLAIR FLECK FLIER FLINT FLUKE FLUNK FOAMY FOCAL FOLLY
-FORAY FORGE FORGO FORTE FORUM FREAK FREER FRITZ FROND FROTH FROZE FUGUE FUNKY FUROR GABBY GAFFE GAILY
-GAMER GAMUT GARNER GAWKY GAUZE GEEKY GECKO GIDDY GIMP GIRTH GLARE GLEAM GLINT GLOOM GNOME GOLLY GOOFY
-GOOSE GOOEY GORGE GRAFT GRAIL GRAZE GRIMY GRIPE GRUFF GUILE GULLY GULCH GUSTY GUTSY GYRATE HAIKU HAMMY
-HANDY HARDY HAUTE HAVOC HEADY HEFTY HICCUP HIPPO HITCH HOOKY HOPPY HORSEY HUSSY HUTCH HYDRO HYENA ICILY
-IDIOM IGLOO ILIAC IMPEL IMPLY INANE INEPT INFER INLET INSET INTER IONIC IRATE ITCHY JAUNT JAZZY JERKY
-JIFFY JOUST JUDGY JUMPY KAPPA KINKY KIOSK KNAVE KNEEL KOALA LARVA LASSO LANKY LAPEL LEAKY LEMUR LIEGE LILAC
-LINER LIPID LISTY LIVID LLAMA LOAMY LOBBY LOOPY LOWLY LUCID LUMPY LUSTY LYRIC MACAW MAFIA MAIZE MAMBO
-MAMMY MANGA MANGY MANOR MASSE MEALY MELEE MESSY METRO MILKY MINIM MISSY MISTY MODAL MOGUL MOTTO MUCKY
-MUDDY MUSHY MUSKY MUSSY MYRRH NASTY NERDY NINJA NIPPY NOISY NYMPH OAKEN OCHRE ODDLY OFFAL OMBRE ONSET
-OPTIC ORBIT OVATE OXIDE PAGAN PANSY PAPAL PARKA PASTY PATSY PAYEE PENAL PENNY PEPPY PERKY PETTY PIXEL
-PIXIE PLAID PLAIT PLIER PLUNK POESY POLYP POPPY POSIT POUTY PROXY PUDGY PUFFY PULPY PUSSY PUTTY PYGMY
-QUASH QUELL RABBI RABID RANDY RASPY RAYON REBAR RECAP RECUT REEDY REGAL RERUN RETRO RIPEN RIVET ROCKY
-ROUGE ROWDY RUGBY RUPEE RUSTY SCAMP SCREE SCION SCOFF SCOLD SEDAN SEEDY SEGUE SERIF SEWER SHAKY SHEIK
-SHIRK SHOAL SHRUB SHUCK SIGMA SINEW SIPPY SIREN SKIMP SKIRT SLIMY SLOTH SLUNK SLYLY SMIRK SMOTE SNIFF
-SNORE SOGGY SOOTY SPIKY SPORE SPREE SQUAB SQUIB STARK STAVE STEIN STILT STOIC STOKE STOMP STONY STUNT
-SUAVE SULKY SUMAC SUNNY SURLY SWAMI SWATH SWIRL TABBY TACIT TATTY TEDDY TEPID TERSE TIBIA TIDAL TITHE
-TIPSY TITAN TODDY TOTEM TOXIN TRACT TRIPE TROVE TRUMP TUBAL TULLE TUMMY TUMOR TUNER TUNIC TWANG TYING
-UDDER UNFIT UNLIT UNMET UNSET UNZIP UPSET URBAN USURP VAPOR VAPID VEGAN VENAL VERGE VERSO VIGIL VILLA
-VISOR VISTA VITAL VIVID VODKA VOGUE VOILA VOUCH VOYEUR WACKY WAGER WALTZ WARTY WASPY WAVER WEBBY WEEDY
-WHELP WIMPY WISPY WOOLY WORDY WOOZY WRACK WREST WRING WRYLY YACHT YEARN ZESTY ZIPPY ZOMBIE ZONAL`.split(/\s+/).filter(w => w.length === 5);
+SOILS SOLES SONGS SORTS SOULS SOUPS SOWS SPANS SPARS SPATS SPECS SPEDS SPEWS SPINS SPITS SPOTS SPUDS SQUADS STABS
+STEMS STEPS STEWS STIRS STOPS STUBS STUDS SUBS SUDS SUMS SUNS SUPS SURFS TABS TAGS TAILS TAKES TALES TALKS
+TANKS TANS TAPS TASKS TEARS TEES TELLS TEMPS TENDS TENS TENS TESTS TEXTS TIES TINS TIPS TIRES TOADS TOLLS TOMES
+TONES TOOLS TOPS TOWS TOWNS TOYS TRACKS TRAPS TRAYS TREES TREKS TRIES TRIPS TUBES TUGS TURNS TUSKS TWIGS TWINS
+TYKES TYES URNS USES VANES VANS VATS VEINS VENDS VENTS VESTS VIALS VIBES VIES VINES VIPERS VOIDS VOWS WADES
+WAIFS WAILS WAITS WALKS WALLS WANDS WANTS WARDS WARES WARNS WARTS WAVES WEDS WEEDS WEEKS WELLS WENDS WETS
+WHIMS WHIPS WIGS WILLS WILTS WINDS WINGS WINKS WIPES WIRES WITCHES WOLVES WOOLS WORDS WORKS WORMS WORTS WRAPS
+YARDS YARNS YELLS YIELDS YOKES YOWLS ZONES ZOOMS`.split(/\s+/).filter(w => w.length === 5);
 const UNIQUE = [...new Set(ALL_WORDS)];
 
 // Easy Peazy — common everyday words only
@@ -822,10 +789,7 @@ const VALID_ALL = new Set([
 // GAME STATE
 // ══════════════════════════════════════════════
 let answer, currentRow, currentCol, board, keyStates, gameOver;
-// Per-mode streaks — each mode tracks independently so they never bleed into each other
-let streaks     = { classic:0, blitz:0, easy:0, custom:0 };
-let bestStreaks  = { classic:0, blitz:0, easy:0, custom:0 };
-let startTime;
+let streak = 0, bestStreak = 0, startTime;
 let currentUser = null;
 let gameMode = 'classic'; // 'classic' | 'blitz' | 'easy' | 'custom'
 let customWordLength = 5; // used when gameMode === 'custom'
@@ -940,7 +904,7 @@ function giveEasyHint() {
   const candidates = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !answerLetters.has(l) && !keyStates[l]);
 
   let count = 2;
-  if (currentRow >= 4 && candidates.length >= 7) count = 3;
+  if (currentRow >= 4 && candidates.length >= 7) count = 2;
 
   const chosen = candidates.sort(() => Math.random() - 0.5).slice(0, count);
   chosen.forEach(letter => {
@@ -978,9 +942,14 @@ function updateBlitzUI() {
   const pct = (blitzSecondsLeft / 30) * 100;
   fillEl.style.width = pct + '%';
   // Colour shift: green → yellow → red
-  if (pct > 50) { fillEl.style.background = 'var(--correct)'; timerEl.style.color = 'var(--accent)'; timerEl.style.animation = 'none'; }
-  else if (pct > 25) { fillEl.style.background = 'var(--present)'; timerEl.style.color = 'var(--accent)'; timerEl.style.animation = 'none'; }
-  else { fillEl.style.background = '#e06060'; timerEl.style.color = '#e06060'; timerEl.style.animation = 'pulse 0.5s infinite'; }
+  if (pct > 50) fillEl.style.background = 'var(--correct)';
+  else if (pct > 25) fillEl.style.background = 'var(--present)';
+  else {
+    fillEl.style.background = '#e06060';
+    timerEl.style.color = '#e06060';
+    timerEl.style.animation = 'pulse 0.5s infinite';
+  }
+  if (pct > 25) { timerEl.style.color = 'var(--accent)'; timerEl.style.animation = 'none'; }
 }
 
 function clearBlitzTimer() {
@@ -1109,12 +1078,12 @@ function endGame(won) {
   const secs = elapsed % 60;
   const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
-  if (won) { streaks[gameMode]++; if (streaks[gameMode] > bestStreaks[gameMode]) bestStreaks[gameMode] = streaks[gameMode]; }
-  else { streaks[gameMode] = 0; }
+  if (won) { streak++; if (streak > bestStreak) bestStreak = streak; }
+  else { streak = 0; }
   saveUserStats(won);
 
   const msgs = ['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'];
-  document.getElementById('end-message').textContent = won ? msgs[Math.min(currentRow,5)] : 'Better Luck!';
+  document.getElementById('end-message').textContent = won ? msgs[Math.min(currentRow,5)] : 'Better Luck';
   document.getElementById('answer-reveal').textContent = won ? `You got it in ${currentRow+1}!` : `The word was: ${answer}`;
 
   const tilesEl = document.getElementById('end-word-tiles');
@@ -1131,8 +1100,8 @@ function endGame(won) {
   });
 
   document.getElementById('stat-guesses').textContent = won ? currentRow + 1 : '✗';
-  document.getElementById('stat-streak').textContent = streaks[gameMode];
-  document.getElementById('stat-best').textContent = bestStreaks[gameMode];
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-best').textContent = bestStreak;
   document.getElementById('end-time').innerHTML = `<span>Time: </span>${timeStr}`;
 
   setTimeout(() => {
@@ -1150,9 +1119,10 @@ function closeOverlay(id) { document.getElementById(id).classList.remove('show')
 function openMenu(which) {
   if (which === 'leaderboard') {
     currentLbMode='classic'; currentLbType='streak'; currentLbTime='alltime';
-    ['classic','blitz','easy','custom'].forEach(m => document.getElementById('lbt-'+m).classList.toggle('active',m==='classic'));
+    ['classic','blitz','easy'].forEach(m => document.getElementById('lbt-'+m).classList.toggle('active',m==='classic'));
     ['streak','wins'].forEach(t => document.getElementById('lbtype-'+t).classList.toggle('active',t==='streak'));
     ['alltime','monthly','weekly'].forEach(t => document.getElementById('lbt-'+t).classList.toggle('active',t==='alltime'));
+    dbCache = null; // always pull fresh data when opening leaderboard
     renderLeaderboard();
   }
   if (which === 'stats') {
@@ -1237,7 +1207,7 @@ let currentLbTime = 'alltime';
 
 function switchLb(mode) {
   currentLbMode = mode;
-  ['classic','blitz','easy','custom'].forEach(m =>
+  ['classic','blitz','easy'].forEach(m =>
     document.getElementById('lbt-' + m).classList.toggle('active', m === mode));
   renderLeaderboard();
 }
@@ -1267,17 +1237,10 @@ function getTimePeriodKey(baseKey, time) {
   if (time === 'alltime') return baseKey;
   const now = new Date();
   if (time === 'weekly') {
-    // Week resets every Saturday: find the most recent Saturday (day 6)
-    const day = now.getDay(); // 0=Sun … 6=Sat
-    const daysSinceSat = (day + 1) % 7; // days since last Saturday
-    const satStart = new Date(now);
-    satStart.setHours(0,0,0,0);
-    satStart.setDate(now.getDate() - daysSinceSat);
-    const weekKey = `${satStart.getFullYear()}_${satStart.getMonth()}_${satStart.getDate()}`;
-    return baseKey + '_w_' + weekKey;
+    const week = `${now.getFullYear()}_w${Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7)}_${now.getMonth()}`;
+    return baseKey + '_w_' + week;
   }
   if (time === 'monthly') {
-    // Month resets on the 1st — key is just year_month
     return baseKey + '_m_' + now.getFullYear() + '_' + now.getMonth();
   }
   return baseKey;
@@ -1293,21 +1256,16 @@ async function renderLeaderboard() {
 
   let baseKey, scoreLabel, icon;
   if (type === 'streak') {
-    baseKey = mode === 'classic' ? 'bestStreak' : mode === 'blitz' ? 'blitzBest' : mode === 'easy' ? 'easyBest' : 'customBest';
+    baseKey = mode === 'classic' ? 'bestStreak' : mode === 'blitz' ? 'blitzBest' : 'easyBest';
     scoreLabel = 'streak'; icon = '🔥';
   } else {
-    baseKey = mode === 'classic' ? 'totalWins' : mode === 'blitz' ? 'blitzWins' : mode === 'easy' ? 'easyWins' : 'customWins';
+    baseKey = mode === 'classic' ? 'totalWins' : mode === 'blitz' ? 'blitzWins' : 'easyWins';
     scoreLabel = 'wins'; icon = '🏆';
   }
   const scoreKey = getTimePeriodKey(baseKey, time);
 
   const entries = Object.entries(users)
-    .filter(([name]) => name !== 'init')
-    .map(([name, data]) => {
-      // Photo comes from the DB record (cross-device), fall back to local cache
-      const photo = data.photo || localStorage.getItem('wordleProfilePhoto_' + name) || null;
-      return { name, score: data[scoreKey] || 0, initial: name[0].toUpperCase(), photo };
-    })
+    .map(([name, data]) => ({ name, score: data[scoreKey] || 0, initial: name[0].toUpperCase() }))
     .filter(e => e.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 20);
@@ -1325,12 +1283,9 @@ async function renderLeaderboard() {
   const rankClasses = ['gold','silver','bronze'];
   list.innerHTML = entries.map((e, i) => {
     const isYou = e.name === currentUser;
-    const avatarInner = e.photo
-      ? `<img src="${e.photo}" alt="${e.initial}">`
-      : e.initial;
     return `<div class="lb-row${isYou ? ' lb-row-you' : ''}">
       <div class="lb-rank ${rankClasses[i] || ''}">${i < 3 ? ['①','②','③'][i] : i + 1}</div>
-      <div class="lb-avatar${isYou ? ' you' : ''}">${avatarInner}</div>
+      <div class="lb-avatar${isYou ? ' you' : ''}">${e.initial}</div>
       <div class="lb-info"><div class="lb-name${isYou ? ' you' : ''}">${e.name}${isYou ? ' ✦' : ''}</div></div>
       <div class="lb-score-col"><div class="lb-score">${e.score}</div><div class="lb-score-lbl">${scoreLabel}</div></div>
     </div>
@@ -1352,26 +1307,13 @@ async function renderStats() {
   notLoggedIn.style.display = 'none';
   content.style.display = 'block';
 
-  // Fill username display
-  document.getElementById('stats-username').textContent = currentUser;
-
-  // Fetch user data
-  const users = await fetchDB();
-  const user = users[currentUser] || {};
-
-  // Load profile photo — check localStorage first (fast), fall back to DB (cross-device)
+  // Load local profile photo
   const photoKey = 'wordleProfilePhoto_' + currentUser;
-  const localPhoto = localStorage.getItem(photoKey);
-  const cloudPhoto = user.photo || null;
-  const photo = localPhoto || cloudPhoto;
+  const savedPhoto = localStorage.getItem(photoKey);
   const photoEl = document.getElementById('stats-avatar-photo');
   const letterEl = document.getElementById('stats-avatar-letter');
-  if (photo) {
-    // Cache cloud photo locally so it's fast next time
-    if (!localPhoto && cloudPhoto) {
-      try { localStorage.setItem(photoKey, cloudPhoto); } catch(err) {}
-    }
-    photoEl.src = photo;
+  if (savedPhoto) {
+    photoEl.src = savedPhoto;
     photoEl.style.display = 'block';
     letterEl.style.display = 'none';
   } else {
@@ -1379,6 +1321,13 @@ async function renderStats() {
     letterEl.style.display = 'block';
     letterEl.textContent = currentUser[0].toUpperCase();
   }
+
+  // Fill username display
+  document.getElementById('stats-username').textContent = currentUser;
+
+  // Fetch user data
+  const users = await fetchDB();
+  const user = users[currentUser] || {};
   document.getElementById('stats-email').textContent = user.email || '';
   const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '';
   document.getElementById('stats-joined').textContent = joined ? 'Joined ' + joined : '';
@@ -1395,8 +1344,8 @@ async function renderStats() {
   document.getElementById('st-wins-easy').textContent    = user.easyWins   || 0;
   document.getElementById('st-wins-custom').textContent  = user.customWins || 0;
 
-  // Summary — current streak shows the active mode's streak
-  document.getElementById('st-current-streak').textContent = streaks[gameMode] || 0;
+  // Summary
+  document.getElementById('st-current-streak').textContent = user.streak || 0;
   const totalW = (user.totalWins||0) + (user.blitzWins||0) + (user.easyWins||0) + (user.customWins||0);
   document.getElementById('st-total-wins').textContent = totalW;
 }
@@ -1405,38 +1354,20 @@ function uploadProfilePhoto(input) {
   if (!input.files[0] || !currentUser) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const img = new Image();
-    img.onload = async () => {
-      // Compress to max 80px square so it fits in JSONBin easily
-      const canvas = document.createElement('canvas');
-      const MAX = 80;
-      const scale = Math.min(MAX / img.width, MAX / img.height, 1);
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const compressed = canvas.toDataURL('image/jpeg', 0.75);
-
-      // Save to localStorage as fast local cache
-      try { localStorage.setItem('wordleProfilePhoto_' + currentUser, compressed); } catch(err) {}
-
-      // Save to cloud DB so it syncs across devices
-      dbCache = null;
-      const users = await fetchDB();
-      if (users[currentUser]) {
-        users[currentUser].photo = compressed;
-        dbDirty = true;
-        await pushDB();
-        dbCache = null;
-      }
-
-      const photoEl = document.getElementById('stats-avatar-photo');
-      const letterEl = document.getElementById('stats-avatar-letter');
-      if (photoEl) { photoEl.src = compressed; photoEl.style.display = 'block'; }
-      if (letterEl) letterEl.style.display = 'none';
-      renderHeader();
-      showToast('Profile photo saved!');
-    };
-    img.src = e.target.result;
+    const data = e.target.result;
+    try {
+      localStorage.setItem('wordleProfilePhoto_' + currentUser, data);
+    } catch(err) {
+      showToast('Image too large to save');
+      return;
+    }
+    const photoEl = document.getElementById('stats-avatar-photo');
+    const letterEl = document.getElementById('stats-avatar-letter');
+    if (photoEl) { photoEl.src = data; photoEl.style.display = 'block'; }
+    if (letterEl) letterEl.style.display = 'none';
+    // Also update header avatar
+    renderHeader();
+    showToast('Profile photo updated!');
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -1582,7 +1513,7 @@ async function fetchDB() {
 }
 
 async function pushDB() {
-  if (!IS_CONFIGURED || !dbDirty) return;
+  if (!IS_CONFIGURED) return;
   dbDirty = false;
   try {
     await fetch(JSONBIN_URL, {
@@ -1611,19 +1542,8 @@ async function loadUser() {
   const user = users[session];
   if (user) {
     currentUser = session;
-    // Load per-mode streaks — fall back to legacy bestStreak for classic
-    streaks.classic    = user.classicStreak    || user.streak     || 0;
-    streaks.blitz      = user.blitzStreak      || 0;
-    streaks.easy       = user.easyStreak       || 0;
-    streaks.custom     = user.customStreak     || 0;
-    bestStreaks.classic = user.bestStreak       || 0;
-    bestStreaks.blitz   = user.blitzBest        || 0;
-    bestStreaks.easy    = user.easyBest         || 0;
-    bestStreaks.custom  = user.customBest       || 0;
-    // Sync cloud photo to localStorage so the header avatar shows immediately
-    if (user.photo) {
-      try { localStorage.setItem('wordleProfilePhoto_' + session, user.photo); } catch(err) {}
-    }
+    streak     = user.streak     || 0;
+    bestStreak = user.bestStreak || 0;
   } else {
     clearSession();
   }
@@ -1632,59 +1552,48 @@ async function loadUser() {
 
 async function saveUserStats(won) {
   if (!currentUser) return;
-  // Always fetch fresh so we don't overwrite other players' data
+  // Always fetch fresh DB — never risk overwriting other players with stale cache
   dbCache = null;
   const users = await fetchDB();
   const user = users[currentUser];
   if (!user) return;
 
   // Ensure all fields exist for old accounts
-  if (user.totalWins   === undefined) user.totalWins   = 0;
-  if (user.blitzWins   === undefined) user.blitzWins   = 0;
-  if (user.easyWins    === undefined) user.easyWins    = 0;
-  if (user.customWins  === undefined) user.customWins  = 0;
-  if (user.blitzBest   === undefined) user.blitzBest   = 0;
-  if (user.easyBest    === undefined) user.easyBest    = 0;
-  if (user.customBest  === undefined) user.customBest  = 0;
-  if (user.classicStreak === undefined) user.classicStreak = user.streak || 0;
-  if (user.blitzStreak   === undefined) user.blitzStreak   = 0;
-  if (user.easyStreak    === undefined) user.easyStreak    = 0;
-  if (user.customStreak  === undefined) user.customStreak  = 0;
+  if (user.totalWins  === undefined) user.totalWins  = 0;
+  if (user.blitzWins  === undefined) user.blitzWins  = 0;
+  if (user.easyWins   === undefined) user.easyWins   = 0;
+  if (user.customWins === undefined) user.customWins = 0;
+  if (user.blitzBest  === undefined) user.blitzBest  = 0;
+  if (user.easyBest   === undefined) user.easyBest   = 0;
+  if (user.customBest === undefined) user.customBest = 0;
 
-  // Save per-mode current streaks
-  user.classicStreak = streaks.classic;
-  user.blitzStreak   = streaks.blitz;
-  user.easyStreak    = streaks.easy;
-  user.customStreak  = streaks.custom;
-  // Keep legacy streak field in sync with classic for backwards compat
-  user.streak = streaks.classic;
+  user.streak     = streak;
+  user.bestStreak = bestStreak;
 
-  // Per-mode best streaks — only update the mode being played
   const streakKey = gameMode === 'blitz' ? 'blitzBest' : gameMode === 'easy' ? 'easyBest' : gameMode === 'custom' ? 'customBest' : 'bestStreak';
-  if (bestStreaks[gameMode] > (user[streakKey] || 0)) user[streakKey] = bestStreaks[gameMode];
+  if (streak > (user[streakKey] || 0)) user[streakKey] = streak;
+  if (bestStreak > (user.bestStreak || 0)) user.bestStreak = bestStreak;
 
   if (won) {
     const winsKey = gameMode === 'blitz' ? 'blitzWins' : gameMode === 'easy' ? 'easyWins' : gameMode === 'custom' ? 'customWins' : 'totalWins';
     user[winsKey] = (user[winsKey] || 0) + 1;
 
-    // Time-period keys — weekly resets every Saturday, monthly resets every 1st
+    // Time-period wins
     const now = new Date();
-    const day = now.getDay(); // 0=Sun … 6=Sat
-    const daysSinceSat = (day + 1) % 7;
-    const satStart = new Date(now);
-    satStart.setHours(0,0,0,0);
-    satStart.setDate(now.getDate() - daysSinceSat);
-    const weekSuffix  = `_w_${satStart.getFullYear()}_${satStart.getMonth()}_${satStart.getDate()}`;
+    const wk = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
+    const weekSuffix  = `_w_${now.getFullYear()}_w${wk}_${now.getMonth()}`;
     const monthSuffix = `_m_${now.getFullYear()}_${now.getMonth()}`;
     user[winsKey + weekSuffix]  = (user[winsKey + weekSuffix]  || 0) + 1;
     user[winsKey + monthSuffix] = (user[winsKey + monthSuffix] || 0) + 1;
 
-    // Time-period best streaks (only for this mode)
+    // Time-period streaks
     const wStreakKey = streakKey + weekSuffix;
     const mStreakKey = streakKey + monthSuffix;
-    if (bestStreaks[gameMode] > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreaks[gameMode];
-    if (bestStreaks[gameMode] > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreaks[gameMode];
+    if (bestStreak > (user[wStreakKey] || 0)) user[wStreakKey] = bestStreak;
+    if (bestStreak > (user[mStreakKey] || 0)) user[mStreakKey] = bestStreak;
   }
+
+  // user is a reference into dbCache[currentUser], so mutation already updated dbCache
   dbDirty = true;
   await pushDB();
   // Force leaderboard to refresh on next open
@@ -1771,18 +1680,8 @@ async function doLogin() {
   if (!user) { errEl.textContent = 'Username not found.'; return; }
   if (user.passwordHash !== simpleHash(password)) { errEl.textContent = 'Incorrect password.'; return; }
   currentUser = username;
-  streaks.classic    = user.classicStreak || user.streak || 0;
-  streaks.blitz      = user.blitzStreak   || 0;
-  streaks.easy       = user.easyStreak    || 0;
-  streaks.custom     = user.customStreak  || 0;
-  bestStreaks.classic = user.bestStreak    || 0;
-  bestStreaks.blitz   = user.blitzBest     || 0;
-  bestStreaks.easy    = user.easyBest      || 0;
-  bestStreaks.custom  = user.customBest    || 0;
-  // Sync cloud photo to localStorage so avatar shows immediately
-  if (user.photo) {
-    try { localStorage.setItem('wordleProfilePhoto_' + username, user.photo); } catch(err) {}
-  }
+  streak = user.streak || 0;
+  bestStreak = user.bestStreak || 0;
   saveSession(username);
   renderHeader(); closeAuth();
   showToast('Welcome back, ' + username + '!');
@@ -1801,24 +1700,24 @@ async function doSignup() {
   if (!valid) { errEl.textContent = !hasLetters ? 'Password needs at least 5 letters.' : !hasNum ? 'Password needs at least 1 number.' : 'Password needs at least 1 special character.'; return; }
   if (!IS_CONFIGURED) { errEl.textContent = 'Cloud DB not configured — see setup banner.'; return; }
   errEl.textContent = 'Creating account…';
+  // Always force a fresh fetch so we have ALL existing users before writing
+  dbCache = null;
   const users = await fetchDB();
   if (users[username]) { errEl.textContent = 'Username already taken.'; return; }
   if (Object.values(users).some(u => u.email === email)) { errEl.textContent = 'Email already registered.'; return; }
   const hint = document.getElementById('su-hint').value.trim();
-  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, classicStreak:0, blitzStreak:0, easyStreak:0, customStreak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, createdAt:Date.now() };
-  setUser(username, newUser);
+  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, createdAt:Date.now() };
+  // Merge new user into the full existing dataset — never overwrite the whole DB
+  dbCache[username] = newUser;
+  dbDirty = true;
   await pushDB();
-  currentUser = username;
-  streaks     = { classic:0, blitz:0, easy:0, custom:0 };
-  bestStreaks  = { classic:0, blitz:0, easy:0, custom:0 };
+  currentUser = username; streak = 0; bestStreak = 0;
   saveSession(username); renderHeader(); closeAuth();
   showToast('Account created! Welcome, ' + username + '!');
 }
 
 async function doLogout() {
-  currentUser = null;
-  streaks    = { classic:0, blitz:0, easy:0, custom:0 };
-  bestStreaks = { classic:0, blitz:0, easy:0, custom:0 };
+  currentUser = null; streak = 0; bestStreak = 0;
   clearSession(); renderHeader(); showToast('Logged out.');
 }
 
