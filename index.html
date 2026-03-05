@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WORDLE</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Roboto+Mono:wght@400;700&family=Orbitron:wght@400;700&family=Pacifico&family=Permanent+Marker&family=Josefin+Sans:wght@400;700&family=Abril+Fatface&family=Press+Start+2P&family=Courier+Prime:wght@400;700&family=DM+Serif+Display&family=Cinzel:wght@400;700&family=Righteous&display=swap" rel="stylesheet">
+<link id="custom-font-link" rel="stylesheet" href="">
 <style>
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 :root {
@@ -12,7 +13,10 @@
   --muted:#555; --correct:#538d4e; --present:#b59f3b;
   --absent:#2a2a2a; --absent-text:#555; --key-bg:#2a2a2a;
   --key-text:#f0ede8; --accent:#e8d5b7;
+  --ui-font: 'Space Mono', monospace;
 }
+/* Apply chosen font to literally everything */
+*, *::before, *::after { font-family: var(--ui-font) !important; }
 body.light {
   --bg:#f9f6f1; --surface:#fff; --border:#d0ccc5; --text:#1a1a1a;
   --muted:#999; --absent:#d3d6da; --absent-text:#888; --key-bg:#d3d6da;
@@ -217,6 +221,24 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 
 /* ── Setup banner ── */
 #setup-banner { display:none; position:fixed; bottom:0; left:0; right:0; background:#1a1000; border-top:2px solid #b59f3b; padding:14px 20px; z-index:500; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+
+/* ── Settings nav ── */
+.stnav-item { display:flex; align-items:center; justify-content:space-between; padding:14px 12px; border:1px solid var(--border); border-radius:4px; margin-bottom:8px; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
+.stnav-item:hover { border-color:var(--accent); background:rgba(232,213,183,0.04); }
+.stnav-icon { font-size:1.2rem; flex-shrink:0; }
+.stnav-label { font-family:'Space Mono',monospace; font-size:0.62rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); }
+.stnav-desc { font-family:'Space Mono',monospace; font-size:0.48rem; color:var(--muted); margin-top:3px; }
+.stnav-arrow { font-family:'Space Mono',monospace; font-size:1.2rem; color:var(--muted); line-height:1; }
+.acct-save-btn { padding:8px 14px; background:var(--correct); border:none; color:#fff; font-family:'Space Mono',monospace; font-size:0.55rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:filter 0.15s; white-space:nowrap; flex-shrink:0; }
+.acct-save-btn:hover { filter:brightness(1.15); }
+
+/* ── Font Cards ── */
+.font-card { background:var(--bg); border:1px solid var(--border); padding:10px 10px 8px; cursor:pointer; transition:border-color 0.15s, background 0.15s; text-align:left; display:flex; flex-direction:column; gap:3px; }
+.font-card:hover { border-color:var(--accent); }
+.font-card.active { border-color:var(--correct); background:rgba(83,141,78,0.08); }
+.font-card-name { font-size:0.55rem; font-weight:700; letter-spacing:0.06em; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.font-card-tag  { font-size:0.42rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
+.font-card-preview { font-size:1.1rem; color:var(--accent); line-height:1.2; margin-top:2px; }
 #setup-banner .sb-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:#b59f3b; letter-spacing:0.1em; flex-shrink:0; margin-top:1px; }
 #setup-banner .sb-steps { font-family:'Space Mono',monospace; font-size:0.55rem; color:#aaa; line-height:1.9; flex:1; min-width:200px; }
 #setup-banner .sb-steps a { color:#b59f3b; }
@@ -249,7 +271,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v14</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v17</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -268,8 +290,47 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 
 <!-- ══ Settings Modal ══ -->
 <div class="overlay" id="settings-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;">
+    <!-- Settings header -->
+    <div style="padding:22px 26px 0;flex-shrink:0;">
+      <div class="menu-title">Settings</div>
+    </div>
+    <!-- Settings nav list -->
+    <div id="settings-nav" style="padding:10px 16px 16px;">
+      <div class="stnav-item" onclick="openSettingsSection('appearance')">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="stnav-icon">🎨</div>
+          <div>
+            <div class="stnav-label">Appearance</div>
+            <div class="stnav-desc">Theme, background, colors &amp; fonts</div>
+          </div>
+        </div>
+        <div class="stnav-arrow">›</div>
+      </div>
+      <div class="stnav-item" onclick="openSettingsSection('account')" id="stnav-account">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="stnav-icon">👤</div>
+          <div>
+            <div class="stnav-label">Account Info</div>
+            <div class="stnav-desc">Edit username, email, password &amp; hint</div>
+          </div>
+        </div>
+        <div class="stnav-arrow">›</div>
+      </div>
+    </div>
+    <div style="padding:0 16px 16px;flex-shrink:0;">
+      <button class="menu-close" style="margin-top:0;" onclick="closeMenu('settings')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Settings › Appearance ══ -->
+<div class="overlay" id="settings-appearance-overlay">
   <div class="modal">
-    <div class="menu-title">Settings</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button onclick="closeOverlay('settings-appearance-overlay')" style="background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.9rem;cursor:pointer;padding:0 4px;line-height:1;">‹</button>
+      <div class="menu-title" style="margin-bottom:0;">Appearance</div>
+    </div>
     <div class="menu-div"></div>
     <div class="srow">
       <div><div class="slbl">Light Mode</div><div class="sdesc">Switch to a light colour theme</div></div>
@@ -312,17 +373,92 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
     </div>
     <div class="srow">
       <div style="width:100%">
-        <div class="slbl">Keyboard Font</div>
-        <div class="sdesc">Change the font used on keyboard keys</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button class="font-btn active" id="font-btn-mono" onclick="applyKeyFont('mono')">Mono</button>
-          <button class="font-btn" id="font-btn-bebas" onclick="applyKeyFont('bebas')">Bebas</button>
-          <button class="font-btn" id="font-btn-serif" onclick="applyKeyFont('serif')">Serif</button>
-          <button class="font-btn" id="font-btn-sans" onclick="applyKeyFont('sans')">Sans</button>
+        <div class="slbl">Global Font</div>
+        <div class="sdesc">Changes the font for the entire game — tiles, keyboard, menus &amp; all</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:12px;" id="font-grid">
+          <!-- filled by JS -->
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div class="slbl" style="margin-bottom:6px;">Custom Font</div>
+          <div class="sdesc" style="margin-bottom:8px;">Paste a Google Fonts URL, or upload a font file (.ttf, .otf, .woff, .woff2)</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;gap:7px;align-items:center;">
+              <input class="ainput" id="custom-font-url" type="text" placeholder="https://fonts.googleapis.com/css2?family=…" style="flex:1;font-size:0.52rem;">
+              <button class="acct-save-btn" onclick="applyCustomFontUrl()">Load</button>
+            </div>
+            <div style="display:flex;gap:7px;align-items:center;">
+              <label class="bg-upload-btn" style="flex:1;text-align:center;cursor:pointer;display:block;">
+                Upload Font File
+                <input type="file" accept=".ttf,.otf,.woff,.woff2" style="display:none;" onchange="applyUploadedFont(this)">
+              </label>
+              <button onclick="resetGlobalFont()" style="padding:7px 12px;background:transparent;border:1px solid #e06060;color:#e06060;font-family:'Space Mono',monospace;font-size:0.5rem;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;">Reset Font</button>
+            </div>
+            <div id="custom-font-status" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted);min-height:14px;"></div>
+          </div>
         </div>
       </div>
     </div>
-    <button class="menu-close" onclick="closeMenu('settings')">Close</button>
+    <button class="menu-close" onclick="closeOverlay('settings-appearance-overlay')">Done</button>
+  </div>
+</div>
+
+<!-- ══ Settings › Account Info ══ -->
+<div class="overlay" id="settings-account-overlay">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button onclick="closeOverlay('settings-account-overlay')" style="background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.9rem;cursor:pointer;padding:0 4px;line-height:1;">‹</button>
+      <div class="menu-title" style="margin-bottom:0;">Account Info</div>
+    </div>
+    <div class="menu-div"></div>
+    <div id="acct-not-logged-in" style="display:none;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);text-align:center;padding:24px 0;">
+      Log in to edit your account info.
+    </div>
+    <div id="acct-fields">
+      <!-- Username -->
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="slbl">Username</div>
+        <div style="display:flex;gap:8px;width:100%;align-items:center;">
+          <input class="ainput" id="acct-username" type="text" maxlength="20" style="flex:1;" placeholder="username">
+          <button class="acct-save-btn" onclick="saveAccountField('username')">Save</button>
+        </div>
+        <div class="aerr" id="acct-username-err" style="min-height:0;margin:0;"></div>
+      </div>
+      <!-- Email -->
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="slbl">Email</div>
+        <div style="display:flex;gap:8px;width:100%;align-items:center;">
+          <input class="ainput" id="acct-email" type="email" style="flex:1;" placeholder="you@example.com">
+          <button class="acct-save-btn" onclick="saveAccountField('email')">Save</button>
+        </div>
+        <div class="aerr" id="acct-email-err" style="min-height:0;margin:0;"></div>
+      </div>
+      <!-- Password -->
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="slbl">New Password</div>
+        <div class="sdesc">Leave blank to keep current password</div>
+        <input class="ainput" id="acct-pw-current" type="password" placeholder="Current password" style="width:100%;margin-top:4px;" autocomplete="current-password">
+        <input class="ainput" id="acct-pw-new" type="password" placeholder="New password" style="width:100%;" oninput="checkPwStrengthAcct(this.value)" autocomplete="new-password">
+        <div class="pw-bar"><div class="pw-fill" id="acct-pw-fill"></div></div>
+        <div class="pw-reqs" style="margin-bottom:0;">
+          <div class="pw-req" id="acct-req-len">At least 5 letters</div>
+          <div class="pw-req" id="acct-req-num">At least 1 number</div>
+          <div class="pw-req" id="acct-req-spc">At least 1 special character</div>
+        </div>
+        <button class="acct-save-btn" style="align-self:flex-start;" onclick="saveAccountField('password')">Update Password</button>
+        <div class="aerr" id="acct-pw-err" style="min-height:0;margin:0;"></div>
+      </div>
+      <!-- Hint -->
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;border-bottom:none;">
+        <div class="slbl">Recovery Hint</div>
+        <div class="sdesc">Shown to you if you forget your password</div>
+        <div style="display:flex;gap:8px;width:100%;align-items:center;margin-top:4px;">
+          <input class="ainput" id="acct-hint" type="text" maxlength="80" style="flex:1;" placeholder="e.g. my first pet's name">
+          <button class="acct-save-btn" onclick="saveAccountField('hint')">Save</button>
+        </div>
+        <div class="aerr" id="acct-hint-err" style="min-height:0;margin:0;"></div>
+      </div>
+    </div>
+    <button class="menu-close" onclick="closeOverlay('settings-account-overlay')">Done</button>
   </div>
 </div>
 
@@ -788,7 +924,7 @@ const VALID_ALL = new Set([
 // ══════════════════════════════════════════════
 // GAME STATE
 // ══════════════════════════════════════════════
-let answer, currentRow, currentCol, board, keyStates, gameOver;
+let answer, currentRow, currentCol, board, keyStates, gameOver, isAnimating;
 let streak = 0, bestStreak = 0, startTime;
 let currentUser = null;
 let gameMode = 'classic'; // 'classic' | 'blitz' | 'easy' | 'custom'
@@ -820,7 +956,7 @@ function initGame() {
   currentRow = 0; currentCol = 0;
   const maxGuesses = gameMode === 'custom' ? Math.max(6, wordLen + 1) : 6;
   board = Array.from({length: maxGuesses}, () => Array(wordLen).fill(''));
-  keyStates = {}; gameOver = false;
+  keyStates = {}; gameOver = false; isAnimating = false;
   startTime = Date.now();
 
   buildGrid(wordLen, maxGuesses); buildKeyboard();
@@ -961,7 +1097,7 @@ function clearBlitzTimer() {
 // GAME LOGIC
 // ══════════════════════════════════════════════
 function handleKey(k) {
-  if (gameOver) return;
+  if (gameOver || isAnimating) return;
   const wordLen = answer ? answer.length : 5;
   const maxGuesses = board.length;
   if (k === '⌫' || k === 'BACKSPACE') {
@@ -1008,6 +1144,7 @@ function score(guess, ans) {
 }
 
 function revealRow(row, result, guess) {
+  isAnimating = true;
   const maxGuesses = board.length;
   result.forEach((state, i) => {
     const tile = document.getElementById('tile-' + row + '-' + i);
@@ -1021,15 +1158,18 @@ function revealRow(row, result, guess) {
     const won = result.every(r => r === 'correct');
     if (won) {
       gameOver = true;
+      isAnimating = false;
       clearBlitzTimer();
       bounceRow(row);
       setTimeout(() => endGame(true), 400);
     } else if (row === maxGuesses - 1) {
       gameOver = true;
+      isAnimating = false;
       clearBlitzTimer();
       setTimeout(() => endGame(false), 200);
     } else {
       currentRow++; currentCol = 0;
+      isAnimating = false;
       // Easy Peazy: extra hints on row 4 (5th guess) if many unknowns remain
       if (gameMode === 'easy' && currentRow === 4) {
         const ansLetters = new Set(answer.split(''));
@@ -1129,6 +1269,131 @@ function openMenu(which) {
     renderStats();
   }
   openOverlay(which + '-overlay');
+}
+
+function openSettingsSection(section) {
+  if (section === 'appearance') {
+    buildFontGrid();
+  }
+  if (section === 'account') {
+    const notEl = document.getElementById('acct-not-logged-in');
+    const fieldsEl = document.getElementById('acct-fields');
+    if (!currentUser) {
+      notEl.style.display = 'block';
+      fieldsEl.style.display = 'none';
+    } else {
+      notEl.style.display = 'none';
+      fieldsEl.style.display = 'block';
+      // Pre-fill fields (fetch fresh data)
+      (async () => {
+        const users = await fetchDB();
+        const user = users[currentUser] || {};
+        document.getElementById('acct-username').value = currentUser;
+        document.getElementById('acct-email').value = user.email || '';
+        document.getElementById('acct-hint').value = user.hint || '';
+        document.getElementById('acct-pw-current').value = '';
+        document.getElementById('acct-pw-new').value = '';
+        // clear errors
+        ['acct-username-err','acct-email-err','acct-pw-err','acct-hint-err'].forEach(id => document.getElementById(id).textContent = '');
+        // reset pw strength bar
+        document.getElementById('acct-pw-fill').style.width = '0%';
+        ['acct-req-len','acct-req-num','acct-req-spc'].forEach(id => document.getElementById(id).classList.remove('met'));
+      })();
+    }
+  }
+  openOverlay('settings-' + section + '-overlay');
+}
+
+// Normalize a user object so every account has all expected fields
+function normalizeUser(user) {
+  const defaults = {
+    streak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0,
+    totalWins:0, blitzWins:0, easyWins:0, customWins:0,
+    classicStreak:0, blitzStreak:0, easyStreak:0, customStreak:0,
+    hint: ''
+  };
+  for (const [k, v] of Object.entries(defaults)) {
+    if (user[k] === undefined || user[k] === null) user[k] = v;
+  }
+  return user;
+}
+
+async function saveAccountField(field) {
+  if (!currentUser || !IS_CONFIGURED) { showToast('Not logged in or DB not configured'); return; }
+  const errId = { username:'acct-username-err', email:'acct-email-err', password:'acct-pw-err', hint:'acct-hint-err' }[field];
+  const errEl = document.getElementById(errId);
+  errEl.textContent = '';
+
+  dbCache = null;
+  const users = await fetchDB();
+  const user = users[currentUser];
+  if (!user) { errEl.textContent = 'Account not found.'; return; }
+
+  if (field === 'username') {
+    const newName = document.getElementById('acct-username').value.trim();
+    if (!newName) { errEl.textContent = 'Username cannot be empty.'; return; }
+    if (newName.length > 20) { errEl.textContent = 'Max 20 characters.'; return; }
+    if (newName !== currentUser && users[newName]) { errEl.textContent = 'Username already taken.'; return; }
+    if (newName === currentUser) { errEl.textContent = 'That\'s already your username!'; return; }
+    // Copy under new key, delete old
+    dbCache[newName] = user;
+    delete dbCache[currentUser];
+    currentUser = newName;
+    saveSession(newName);
+    dbDirty = true;
+    await pushDB();
+    renderHeader();
+    showToast('Username updated!');
+
+  } else if (field === 'email') {
+    const newEmail = document.getElementById('acct-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { errEl.textContent = 'Invalid email address.'; return; }
+    if (Object.entries(users).some(([n, u]) => u.email === newEmail && n !== currentUser)) {
+      errEl.textContent = 'Email already in use.'; return;
+    }
+    user.email = newEmail;
+    dbDirty = true;
+    await pushDB();
+    showToast('Email updated!');
+
+  } else if (field === 'password') {
+    const current = document.getElementById('acct-pw-current').value;
+    const newPw = document.getElementById('acct-pw-new').value;
+    if (!current) { errEl.textContent = 'Enter your current password.'; return; }
+    if (user.passwordHash !== simpleHash(current)) { errEl.textContent = 'Current password is incorrect.'; return; }
+    if (!newPw) { errEl.textContent = 'Enter a new password.'; return; }
+    const { valid, hasLetters, hasNum } = validatePassword(newPw);
+    if (!valid) {
+      errEl.textContent = !hasLetters ? 'Needs at least 5 letters.' : !hasNum ? 'Needs at least 1 number.' : 'Needs at least 1 special character.';
+      return;
+    }
+    user.passwordHash = simpleHash(newPw);
+    dbDirty = true;
+    await pushDB();
+    document.getElementById('acct-pw-current').value = '';
+    document.getElementById('acct-pw-new').value = '';
+    document.getElementById('acct-pw-fill').style.width = '0%';
+    ['acct-req-len','acct-req-num','acct-req-spc'].forEach(id => document.getElementById(id).classList.remove('met'));
+    showToast('Password updated!');
+
+  } else if (field === 'hint') {
+    const newHint = document.getElementById('acct-hint').value.trim();
+    user.hint = newHint;
+    dbDirty = true;
+    await pushDB();
+    showToast('Recovery hint updated!');
+  }
+}
+
+function checkPwStrengthAcct(pw) {
+  const { hasLetters, hasNum, hasSpc } = validatePassword(pw);
+  document.getElementById('acct-req-len').classList.toggle('met', hasLetters);
+  document.getElementById('acct-req-num').classList.toggle('met', hasNum);
+  document.getElementById('acct-req-spc').classList.toggle('met', hasSpc);
+  const s = [hasLetters, hasNum, hasSpc].filter(Boolean).length;
+  const fill = document.getElementById('acct-pw-fill');
+  fill.style.width = (s / 3 * 100) + '%';
+  fill.style.background = ['#e06060','#b59f3b','#538d4e'][s - 1] || 'transparent';
 }
 function closeMenu(which) { closeOverlay(which + '-overlay'); }
 
@@ -1246,10 +1511,14 @@ function getTimePeriodKey(baseKey, time) {
   return baseKey;
 }
 
+let lbRenderToken = 0;
+
 async function renderLeaderboard() {
+  const token = ++lbRenderToken;
   const list = document.getElementById('lb-list');
   list.innerHTML = '<div class="lb-empty">Loading…</div>';
   const users = await fetchDB();
+  if (token !== lbRenderToken) return; // stale render — a newer one is in flight
   const mode = currentLbMode;
   const type = currentLbType;
   const time = currentLbTime;
@@ -1281,11 +1550,29 @@ async function renderLeaderboard() {
   }
 
   const rankClasses = ['gold','silver','bronze'];
+  // Build pfp map from DB records (cross-device sync)
+  const pfpMap = {};
+  Object.entries(users).forEach(([name, data]) => {
+    if (data && data.prefs && data.prefs.pfp && data.prefs.pfp !== '__toobig__') {
+      pfpMap[name] = data.prefs.pfp;
+      // Cache in localStorage so leaderboard renders fast next time
+      try { localStorage.setItem('wordleProfilePhoto_' + name, data.prefs.pfp); } catch {}
+    } else {
+      // Fall back to local cache (e.g. for the current user's own device)
+      const local = localStorage.getItem('wordleProfilePhoto_' + name);
+      if (local) pfpMap[name] = local;
+    }
+  });
+
   list.innerHTML = entries.map((e, i) => {
     const isYou = e.name === currentUser;
+    const photo = pfpMap[e.name];
+    const avatarHtml = photo
+      ? `<div class="lb-avatar${isYou ? ' you' : ''}" style="background:none;padding:0;overflow:hidden;border-radius:3px;"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;" /></div>`
+      : `<div class="lb-avatar${isYou ? ' you' : ''}">${e.initial}</div>`;
     return `<div class="lb-row${isYou ? ' lb-row-you' : ''}">
       <div class="lb-rank ${rankClasses[i] || ''}">${i < 3 ? ['①','②','③'][i] : i + 1}</div>
-      <div class="lb-avatar${isYou ? ' you' : ''}">${e.initial}</div>
+      ${avatarHtml}
       <div class="lb-info"><div class="lb-name${isYou ? ' you' : ''}">${e.name}${isYou ? ' ✦' : ''}</div></div>
       <div class="lb-score-col"><div class="lb-score">${e.score}</div><div class="lb-score-lbl">${scoreLabel}</div></div>
     </div>
@@ -1368,6 +1655,7 @@ function uploadProfilePhoto(input) {
     // Also update header avatar
     renderHeader();
     showToast('Profile photo updated!');
+    if (currentUser) syncPrefsToCloud();
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -1379,6 +1667,7 @@ function toggleLight() {
   const isLight = document.body.classList.toggle('light');
   document.getElementById('toggle-light').classList.toggle('on', isLight);
   localStorage.setItem('wordleLight', isLight ? '1' : '');
+  if (currentUser) syncPrefsToCloud();
 }
 
 function applyBgColor(hex) {
@@ -1386,6 +1675,7 @@ function applyBgColor(hex) {
   document.body.style.backgroundColor = hex;
   document.body.classList.add('has-bg');
   localStorage.setItem('wordleBg', JSON.stringify({ type:'color', value:hex }));
+  if (currentUser) syncPrefsToCloud();
 }
 
 function applyBgImage(input) {
@@ -1396,12 +1686,12 @@ function applyBgImage(input) {
     const dataUrl = e.target.result;
     document.body.style.backgroundImage = `url(${dataUrl})`;
     document.body.classList.add('has-bg');
-    // Store — note: large images may exceed localStorage quota; warn if so
     try {
       localStorage.setItem('wordleBg', JSON.stringify({ type:'image', value:dataUrl }));
     } catch(err) {
-      showToast('Image too large to save — resets on refresh');
+      showToast('Image too large to save locally — resets on refresh');
     }
+    if (currentUser) syncPrefsToCloud();
   };
   reader.readAsDataURL(file);
 }
@@ -1412,6 +1702,7 @@ function resetBg() {
   document.body.classList.remove('has-bg');
   localStorage.removeItem('wordleBg');
   document.getElementById('bg-color-input').value = '#0f0f0f';
+  if (currentUser) syncPrefsToCloud();
 }
 
 // ══════════════════════════════════════════════
@@ -1425,6 +1716,7 @@ function applyCustomColor(type, hex) {
   const saved = JSON.parse(localStorage.getItem('wordleColors') || '{}');
   saved[type] = hex;
   localStorage.setItem('wordleColors', JSON.stringify(saved));
+  if (currentUser) syncPrefsToCloud();
 }
 
 function resetCustomColors() {
@@ -1437,19 +1729,139 @@ function resetCustomColors() {
   document.getElementById('color-absent').value = '#2a2a2a';
 }
 
-function applyKeyFont(font) {
-  const fonts = {
-    mono: "'Space Mono', monospace",
-    bebas: "'Bebas Neue', sans-serif",
-    serif: 'Georgia, serif',
-    sans: 'Arial, sans-serif'
+// ══════════════════════════════════════════════
+// GLOBAL FONT SYSTEM
+// ══════════════════════════════════════════════
+const FONT_PRESETS = [
+  { id:'space-mono',   label:'Space Mono',       family:"'Space Mono', monospace",        tag:'Default' },
+  { id:'inter',        label:'Inter',             family:"'Inter', sans-serif",             tag:'Clean' },
+  { id:'bebas',        label:'Bebas Neue',        family:"'Bebas Neue', sans-serif",        tag:'Bold' },
+  { id:'playfair',     label:'Playfair Display',  family:"'Playfair Display', serif",       tag:'Elegant' },
+  { id:'oswald',       label:'Oswald',            family:"'Oswald', sans-serif",            tag:'Condensed' },
+  { id:'raleway',      label:'Raleway',           family:"'Raleway', sans-serif",           tag:'Modern' },
+  { id:'roboto-mono',  label:'Roboto Mono',       family:"'Roboto Mono', monospace",        tag:'Code' },
+  { id:'orbitron',     label:'Orbitron',          family:"'Orbitron', sans-serif",          tag:'Sci-Fi' },
+  { id:'pacifico',     label:'Pacifico',          family:"'Pacifico', cursive",             tag:'Fun' },
+  { id:'perm-marker',  label:'Permanent Marker',  family:"'Permanent Marker', cursive",     tag:'Handwritten' },
+  { id:'josefin',      label:'Josefin Sans',      family:"'Josefin Sans', sans-serif",      tag:'Geometric' },
+  { id:'abril',        label:'Abril Fatface',     family:"'Abril Fatface', serif",          tag:'Display' },
+  { id:'press-start',  label:'Press Start 2P',    family:"'Press Start 2P', monospace",     tag:'Retro' },
+  { id:'courier',      label:'Courier Prime',     family:"'Courier Prime', monospace",      tag:'Typewriter' },
+  { id:'dm-serif',     label:'DM Serif Display',  family:"'DM Serif Display', serif",       tag:'Serif' },
+  { id:'cinzel',       label:'Cinzel',            family:"'Cinzel', serif",                 tag:'Classic' },
+  { id:'righteous',    label:'Righteous',         family:"'Righteous', sans-serif",         tag:'Rounded' },
+];
+
+let currentFontId = 'space-mono';
+
+function buildFontGrid() {
+  const grid = document.getElementById('font-grid');
+  if (!grid) return;
+  grid.innerHTML = FONT_PRESETS.map(f => `
+    <button class="font-card${f.id === currentFontId ? ' active' : ''}" id="fcard-${f.id}" onclick="applyGlobalFont('${f.id}')" style="font-family:${f.family};">
+      <div class="font-card-name">${f.label}</div>
+      <div class="font-card-tag">${f.tag}</div>
+      <div class="font-card-preview" style="font-family:${f.family};">Aa Bb</div>
+    </button>
+  `).join('');
+}
+
+function applyGlobalFont(id, customFamily, customLabel) {
+  const preset = FONT_PRESETS.find(f => f.id === id);
+  const family = customFamily || (preset ? preset.family : "'Space Mono', monospace");
+  const label  = customLabel  || (preset ? preset.label  : 'Custom');
+
+  currentFontId = id;
+  // One line — CSS variable does ALL the work via * { font-family: var(--ui-font) !important }
+  document.documentElement.style.setProperty('--ui-font', family);
+
+  // Update grid selection highlight
+  document.querySelectorAll('.font-card').forEach(el => el.classList.remove('active'));
+  const card = document.getElementById('fcard-' + id);
+  if (card) card.classList.add('active');
+
+  localStorage.setItem('wordleGlobalFont', JSON.stringify({ id, family, label }));
+
+  const status = document.getElementById('custom-font-status');
+  if (status && (id === 'custom-url' || id === 'custom-upload')) {
+    status.textContent = '✓ ' + label + ' applied!';
+    status.style.color = 'var(--correct)';
+  }
+
+  // Sync to cloud if logged in
+  if (currentUser) syncPrefsToCloud();
+}
+
+function applyCustomFontUrl() {
+  const urlInput = document.getElementById('custom-font-url');
+  const status = document.getElementById('custom-font-status');
+  let url = urlInput.value.trim();
+  if (!url) { status.textContent = 'Please paste a Google Fonts URL.'; status.style.color='#e06060'; return; }
+
+  // Accept both full embed URLs and bare family names
+  let fontName = 'Custom Font';
+  try {
+    // Extract family name from URL like ?family=Lobster or ?family=Lobster+Two
+    const match = url.match(/family=([^&:]+)/);
+    if (match) fontName = decodeURIComponent(match[1]).replace(/\+/g,' ').split(':')[0].split(';')[0].trim();
+  } catch {}
+
+  // If they typed just a font name (no http), build the URL
+  if (!url.startsWith('http')) {
+    fontName = url;
+    url = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(url.replace(/ /g, '+')) + ':wght@400;700&display=swap';
+  }
+
+  status.textContent = 'Loading…'; status.style.color = 'var(--muted)';
+  const link = document.getElementById('custom-font-link');
+  link.href = url;
+  link.onload = () => {
+    const family = `'${fontName}', sans-serif`;
+    // Remove old custom preset if any
+    const existing = FONT_PRESETS.findIndex(f => f.id === 'custom-url');
+    const entry = { id:'custom-url', label:fontName, family, tag:'Custom' };
+    if (existing >= 0) FONT_PRESETS[existing] = entry; else FONT_PRESETS.push(entry);
+    buildFontGrid();
+    applyGlobalFont('custom-url', family, fontName);
   };
-  document.querySelectorAll('.key').forEach(k => k.style.fontFamily = fonts[font] || fonts.mono);
-  ['mono','bebas','serif','sans'].forEach(f => {
-    const btn = document.getElementById('font-btn-' + f);
-    if (btn) btn.classList.toggle('active', f === font);
-  });
-  localStorage.setItem('wordleKeyFont', font);
+  link.onerror = () => { status.textContent = 'Failed to load font — check the URL.'; status.style.color='#e06060'; };
+}
+
+function applyUploadedFont(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('custom-font-status');
+  status.textContent = 'Loading…'; status.style.color = 'var(--muted)';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const fontName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g,' ');
+    const dataUrl = e.target.result;
+    // Inject @font-face
+    let styleEl = document.getElementById('uploaded-font-style');
+    if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'uploaded-font-style'; document.head.appendChild(styleEl); }
+    styleEl.textContent = `@font-face { font-family: '${fontName}'; src: url('${dataUrl}'); }`;
+    const family = `'${fontName}', sans-serif`;
+    const existing = FONT_PRESETS.findIndex(f => f.id === 'custom-upload');
+    const entry = { id:'custom-upload', label:fontName, family, tag:'Uploaded' };
+    if (existing >= 0) FONT_PRESETS[existing] = entry; else FONT_PRESETS.push(entry);
+    buildFontGrid();
+    applyGlobalFont('custom-upload', family, fontName);
+    // Don't save dataUrl to localStorage (too large) — just save name
+    localStorage.setItem('wordleGlobalFont', JSON.stringify({ id:'custom-upload', family, label:fontName }));
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetGlobalFont() {
+  currentFontId = 'space-mono';
+  document.documentElement.style.setProperty('--ui-font', "'Space Mono', monospace");
+  localStorage.removeItem('wordleGlobalFont');
+  buildFontGrid();
+  const status = document.getElementById('custom-font-status');
+  if (status) { status.textContent = 'Font reset to default.'; status.style.color='var(--muted)'; }
+  const urlInput = document.getElementById('custom-font-url');
+  if (urlInput) urlInput.value = '';
+  if (currentUser) syncPrefsToCloud();
 }
 
 function loadCustomizations() {
@@ -1457,8 +1869,19 @@ function loadCustomizations() {
   if (colors.correct) { document.documentElement.style.setProperty('--correct', colors.correct); document.getElementById('color-correct').value = colors.correct; }
   if (colors.present) { document.documentElement.style.setProperty('--present', colors.present); document.getElementById('color-present').value = colors.present; }
   if (colors.absent)  { document.documentElement.style.setProperty('--absent',  colors.absent);  document.getElementById('color-absent').value  = colors.absent; }
-  const font = localStorage.getItem('wordleKeyFont');
-  if (font) setTimeout(() => applyKeyFont(font), 100);
+
+  // Restore saved global font
+  const savedFont = JSON.parse(localStorage.getItem('wordleGlobalFont') || 'null');
+  if (savedFont) {
+    setTimeout(() => {
+      if (savedFont.id === 'custom-url' || savedFont.id === 'custom-upload') {
+        const existing = FONT_PRESETS.findIndex(f => f.id === savedFont.id);
+        const entry = { id:savedFont.id, label:savedFont.label, family:savedFont.family, tag: savedFont.id === 'custom-url' ? 'Custom' : 'Uploaded' };
+        if (existing >= 0) FONT_PRESETS[existing] = entry; else FONT_PRESETS.push(entry);
+      }
+      applyGlobalFont(savedFont.id, savedFont.family, savedFont.label);
+    }, 200);
+  }
 }
 
 function loadSettings() {
@@ -1508,6 +1931,13 @@ async function fetchDB() {
     });
     const j = await r.json();
     dbCache = j && typeof j === 'object' && !j.message ? j : {};
+    // Normalize every user so old accounts have all fields
+    for (const key of Object.keys(dbCache)) {
+      if (key === 'init') continue;
+      if (typeof dbCache[key] === 'object' && dbCache[key] !== null && dbCache[key].email) {
+        normalizeUser(dbCache[key]);
+      }
+    }
     return dbCache;
   } catch(e) { console.error('DB fetch failed', e); return dbCache || {}; }
 }
@@ -1535,6 +1965,125 @@ function showSetupBanner() {
   if (b) b.style.display = 'flex';
 }
 
+// ══════════════════════════════════════════════
+// CROSS-DEVICE PREFERENCES SYNC
+// ══════════════════════════════════════════════
+// Prefs stored in user's DB record under 'prefs' key.
+// pfp is stored as base64 — it's large but JSONBin allows up to 5MB per bin.
+
+async function syncPrefsToCloud() {
+  if (!currentUser || !IS_CONFIGURED) return;
+  const users = await fetchDB();
+  const user = users[currentUser];
+  if (!user) return;
+
+  // Collect current prefs from localStorage
+  const prefs = {};
+
+  // Font
+  const savedFont = JSON.parse(localStorage.getItem('wordleGlobalFont') || 'null');
+  if (savedFont) prefs.font = savedFont;
+
+  // Colors
+  const colors = JSON.parse(localStorage.getItem('wordleColors') || '{}');
+  if (Object.keys(colors).length) prefs.colors = colors;
+
+  // Light mode
+  prefs.lightMode = !!localStorage.getItem('wordleLight');
+
+  // Background — store color directly; images too large for DB, store as flag
+  const bg = JSON.parse(localStorage.getItem('wordleBg') || 'null');
+  if (bg && bg.type === 'color') prefs.bg = bg;
+  // For image backgrounds: store them as base64 in prefs.bgImage if size allows
+  if (bg && bg.type === 'image') {
+    try {
+      // Check size — skip if >400KB to avoid blowing the 5MB bin
+      if (bg.value && bg.value.length < 400000) {
+        prefs.bg = bg;
+      } else {
+        prefs.bg = { type: 'image-toobig' }; // flag: had image but too big to sync
+      }
+    } catch {}
+  }
+
+  // Profile photo
+  const photoKey = 'wordleProfilePhoto_' + currentUser;
+  const photo = localStorage.getItem(photoKey);
+  if (photo) {
+    try {
+      if (photo.length < 600000) prefs.pfp = photo;
+      else prefs.pfp = '__toobig__';
+    } catch {}
+  }
+
+  user.prefs = prefs;
+  dbDirty = true;
+  await pushDB();
+}
+
+async function loadPrefsFromCloud(username) {
+  // Called right after login — pulls prefs from DB and applies them locally
+  const users = await fetchDB();
+  const user = users[username];
+  if (!user || !user.prefs) return;
+  const prefs = user.prefs;
+
+  // Light mode
+  if (prefs.lightMode) {
+    document.body.classList.add('light');
+    document.getElementById('toggle-light')?.classList.add('on');
+    localStorage.setItem('wordleLight', '1');
+  } else {
+    document.body.classList.remove('light');
+    document.getElementById('toggle-light')?.classList.remove('on');
+    localStorage.removeItem('wordleLight');
+  }
+
+  // Colors
+  if (prefs.colors) {
+    localStorage.setItem('wordleColors', JSON.stringify(prefs.colors));
+    const root = document.documentElement;
+    if (prefs.colors.correct) { root.style.setProperty('--correct', prefs.colors.correct); const el = document.getElementById('color-correct'); if(el) el.value = prefs.colors.correct; }
+    if (prefs.colors.present) { root.style.setProperty('--present', prefs.colors.present); const el = document.getElementById('color-present'); if(el) el.value = prefs.colors.present; }
+    if (prefs.colors.absent)  { root.style.setProperty('--absent',  prefs.colors.absent);  const el = document.getElementById('color-absent');  if(el) el.value = prefs.colors.absent; }
+  }
+
+  // Background
+  if (prefs.bg) {
+    if (prefs.bg.type === 'color') {
+      document.body.style.backgroundColor = prefs.bg.value;
+      document.body.classList.add('has-bg');
+      localStorage.setItem('wordleBg', JSON.stringify(prefs.bg));
+      const el = document.getElementById('bg-color-input'); if (el) el.value = prefs.bg.value;
+    } else if (prefs.bg.type === 'image' && prefs.bg.value) {
+      document.body.style.backgroundImage = `url(${prefs.bg.value})`;
+      document.body.classList.add('has-bg');
+      localStorage.setItem('wordleBg', JSON.stringify(prefs.bg));
+    }
+  }
+
+  // Profile photo
+  if (prefs.pfp && prefs.pfp !== '__toobig__') {
+    const photoKey = 'wordleProfilePhoto_' + username;
+    localStorage.setItem(photoKey, prefs.pfp);
+  }
+
+  // Font — load Google Font link if needed, then apply
+  if (prefs.font) {
+    localStorage.setItem('wordleGlobalFont', JSON.stringify(prefs.font));
+    if (prefs.font.id === 'custom-url' && prefs.font.family) {
+      // Extract url from family or rebuild from label
+      const fontName = prefs.font.label || 'Custom';
+      const url = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName.replace(/ /g, '+')) + ':wght@400;700&display=swap';
+      const link = document.getElementById('custom-font-link');
+      if (link) { link.href = url; await new Promise(r => { link.onload = r; link.onerror = r; setTimeout(r, 2000); }); }
+    }
+    applyGlobalFont(prefs.font.id, prefs.font.family, prefs.font.label);
+  }
+
+  renderHeader();
+}
+
 async function loadUser() {
   const session = getSession();
   if (!session) { renderHeader(); return; }
@@ -1544,6 +2093,7 @@ async function loadUser() {
     currentUser = session;
     streak     = user.streak     || 0;
     bestStreak = user.bestStreak || 0;
+    await loadPrefsFromCloud(session);
   } else {
     clearSession();
   }
@@ -1685,6 +2235,8 @@ async function doLogin() {
   saveSession(username);
   renderHeader(); closeAuth();
   showToast('Welcome back, ' + username + '!');
+  // Load cross-device prefs from cloud
+  loadPrefsFromCloud(username);
 }
 
 async function doSignup() {
@@ -1706,7 +2258,7 @@ async function doSignup() {
   if (users[username]) { errEl.textContent = 'Username already taken.'; return; }
   if (Object.values(users).some(u => u.email === email)) { errEl.textContent = 'Email already registered.'; return; }
   const hint = document.getElementById('su-hint').value.trim();
-  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, createdAt:Date.now() };
+  const newUser = { email, passwordHash: simpleHash(password), hint, streak:0, bestStreak:0, blitzBest:0, easyBest:0, customBest:0, totalWins:0, blitzWins:0, easyWins:0, customWins:0, classicStreak:0, blitzStreak:0, easyStreak:0, customStreak:0, createdAt:Date.now(), prefs:{} };
   // Merge new user into the full existing dataset — never overwrite the whole DB
   dbCache[username] = newUser;
   dbDirty = true;
@@ -1714,6 +2266,8 @@ async function doSignup() {
   currentUser = username; streak = 0; bestStreak = 0;
   saveSession(username); renderHeader(); closeAuth();
   showToast('Account created! Welcome, ' + username + '!');
+  // Sync any existing local prefs to their new cloud account
+  syncPrefsToCloud();
 }
 
 async function doLogout() {
