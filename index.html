@@ -244,11 +244,119 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 #setup-banner .sb-steps a { color:#b59f3b; }
 #setup-banner .sb-close { background:none; border:1px solid #555; color:#888; font-family:'Space Mono',monospace; font-size:0.5rem; padding:5px 10px; cursor:pointer; letter-spacing:0.1em; flex-shrink:0; margin-top:2px; }
 #setup-banner .sb-close:hover { border-color:#b59f3b; color:#b59f3b; }
+/* ── Friends & Messaging ── */
+.fr-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:14px; }
+.fr-tab { flex:1; padding:8px 4px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-size:0.52rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:color 0.15s,border-color 0.15s; margin-bottom:-1px; }
+.fr-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.fr-tab .fr-tab-badge { display:inline-block; background:#e06060; color:#fff; border-radius:8px; font-size:0.42rem; padding:1px 5px; margin-left:4px; vertical-align:middle; }
+.fr-search-row { display:flex; gap:7px; margin-bottom:14px; }
+.fr-search-row .ainput { flex:1; font-size:0.65rem; }
+.fr-add-btn { padding:8px 14px; background:var(--correct); border:none; color:#fff; font-size:0.55rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:filter 0.15s; }
+.fr-add-btn:hover { filter:brightness(1.15); }
+.fr-list { display:flex; flex-direction:column; gap:6px; max-height:320px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.fr-row { display:flex; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--border); border-radius:3px; transition:border-color 0.12s; }
+.fr-row:hover { border-color:var(--accent); }
+.fr-avatar { width:34px; height:34px; background:var(--correct); display:flex; align-items:center; justify-content:center; border-radius:3px; font-size:1rem; color:#fff; flex-shrink:0; overflow:hidden; }
+.fr-avatar img { width:100%; height:100%; object-fit:cover; }
+.fr-info { flex:1; min-width:0; }
+.fr-name { font-size:0.6rem; font-weight:700; letter-spacing:0.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fr-sub  { font-size:0.46rem; color:var(--muted); margin-top:1px; letter-spacing:0.06em; }
+.fr-actions { display:flex; gap:5px; flex-shrink:0; }
+.fr-btn { padding:5px 10px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:0.48rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; border-radius:2px; }
+.fr-btn:hover { border-color:var(--accent); color:var(--accent); }
+.fr-btn.accept { border-color:var(--correct); color:var(--correct); }
+.fr-btn.accept:hover { background:var(--correct); color:#fff; }
+.fr-btn.deny  { border-color:#e06060; color:#e06060; }
+.fr-btn.deny:hover  { background:#e06060; color:#fff; }
+.fr-btn.msg   { border-color:var(--accent); color:var(--accent); }
+.fr-btn.msg:hover   { background:var(--accent); color:var(--bg); }
+.fr-empty { font-size:0.6rem; color:var(--muted); text-align:center; padding:28px 0; letter-spacing:0.08em; }
+.fr-err { font-size:0.55rem; color:#e06060; min-height:14px; margin-bottom:6px; }
+.online-dot { width:7px; height:7px; border-radius:50%; background:#555; display:inline-block; flex-shrink:0; }
+.online-dot.on { background:var(--correct); }
+
+/* ── DM / Chat ── */
+#dm-overlay .modal { padding:0; overflow:hidden; display:flex; flex-direction:column; height:min(560px,88vh); }
+.dm-header { display:flex; align-items:center; gap:10px; padding:16px 18px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.dm-back { background:none; border:none; color:var(--muted); font-size:1rem; cursor:pointer; padding:0 4px; line-height:1; transition:color 0.15s; }
+.dm-back:hover { color:var(--accent); }
+.dm-avatar { width:32px; height:32px; background:var(--correct); border-radius:3px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.95rem; flex-shrink:0; overflow:hidden; }
+.dm-avatar img { width:100%; height:100%; object-fit:cover; }
+.dm-title { font-size:1rem; letter-spacing:0.06em; color:var(--accent); line-height:1; }
+.dm-sub   { font-size:0.44rem; color:var(--muted); margin-top:2px; letter-spacing:0.08em; }
+.dm-msgs  { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.dm-bubble-wrap { display:flex; flex-direction:column; gap:2px; }
+.dm-bubble-wrap.me { align-items:flex-end; }
+.dm-bubble-wrap.them { align-items:flex-start; }
+.dm-bubble { max-width:72%; padding:9px 13px; border-radius:14px; font-size:0.65rem; line-height:1.5; word-break:break-word; }
+.dm-bubble-wrap.me   .dm-bubble { background:var(--correct); color:#fff; border-bottom-right-radius:4px; }
+.dm-bubble-wrap.them .dm-bubble { background:var(--surface); border:1px solid var(--border); color:var(--text); border-bottom-left-radius:4px; }
+.dm-ts { font-size:0.4rem; color:var(--muted); letter-spacing:0.06em; padding:0 4px; }
+.dm-input-row { display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--border); flex-shrink:0; align-items:center; }
+.dm-input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px 14px; font-size:0.65rem; outline:none; border-radius:20px; transition:border-color 0.15s; }
+.dm-input:focus { border-color:var(--accent); }
+.dm-send { width:36px; height:36px; background:var(--correct); border:none; color:#fff; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:filter 0.15s; flex-shrink:0; }
+.dm-send:hover { filter:brightness(1.15); }
+.dm-date-divider { text-align:center; font-size:0.42rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; padding:4px 0; }
+/* ── Hamburger ── */
+.hamburger-btn { background:transparent; border:1px solid var(--border); color:var(--muted); width:34px; height:34px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px; border-radius:3px; transition:border-color 0.15s,color 0.15s; flex-shrink:0; }
+.hamburger-btn:hover { border-color:var(--accent); color:var(--accent); }
+.hamburger-btn span { display:block; width:16px; height:2px; background:currentColor; border-radius:1px; transition:background 0.15s; }
+/* Sidebar nav items */
+.sb-item { display:flex; align-items:center; gap:10px; padding:11px 18px; font-size:0.6rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text); cursor:pointer; transition:background 0.12s, color 0.12s; }
+.sb-item:hover { background:rgba(232,213,183,0.06); color:var(--accent); }
+/* Online status */
+.status-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; border:1.5px solid var(--surface); }
+.status-dot.online { background:#3ecf8e; }
+.status-dot.idle   { background:#f59e0b; }
+.status-dot.offline{ background:#555; }
+/* Read receipt */
+.dm-receipt { font-size:0.38rem; color:var(--muted); letter-spacing:0.06em; padding:0 4px 1px; display:flex; align-items:center; gap:3px; }
+.dm-receipt.read { color:var(--correct); }
+/* Profile modal */
+.prof-banner { height:72px; background:linear-gradient(135deg, var(--correct), var(--present)); border-radius:4px 4px 0 0; flex-shrink:0; }
+.prof-avatar-wrap { position:relative; margin:-32px 0 0 18px; display:inline-block; }
+.prof-avatar { width:64px; height:64px; border-radius:50%; border:3px solid var(--surface); background:var(--correct); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:#fff; overflow:hidden; }
+.prof-avatar img { width:100%; height:100%; object-fit:cover; }
+.prof-username { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.08em; color:var(--accent); line-height:1.1; }
+.prof-bio { font-size:0.55rem; color:var(--muted); line-height:1.6; margin-top:4px; white-space:pre-wrap; word-break:break-word; }
+.prof-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+.prof-stat { background:rgba(0,0,0,0.15); border:1px solid var(--border); padding:8px 4px; text-align:center; border-radius:3px; }
+body.light .prof-stat { background:rgba(0,0,0,0.04); }
+.prof-stat-num { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--accent); line-height:1; }
+.prof-stat-lbl { font-size:0.42rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
+/* Minigames */
+.mg-card { border:1px solid var(--border); border-radius:4px; padding:16px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:14px; transition:border-color 0.15s, background 0.15s; }
+.mg-card:hover { border-color:var(--accent); background:rgba(232,213,183,0.04); }
+.mg-icon { font-size:2rem; flex-shrink:0; }
+.mg-name { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:0.08em; color:var(--accent); }
+.mg-desc { font-size:0.5rem; color:var(--muted); margin-top:2px; }
+#mg-game-frame { width:100%; flex:1; border:none; border-radius:4px; background:#1a1a1a; display:none; }
 </style>
 </head>
 <body>
 
-<!-- ⚠️ Setup Banner — hidden once JSONBin is configured -->
+<!-- ══ Sidebar ══ -->
+<div id="sidebar-backdrop" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;backdrop-filter:blur(2px);"></div>
+<nav id="sidebar" style="position:fixed;top:0;left:0;height:100vh;width:260px;background:var(--surface);border-right:1px solid var(--border);z-index:301;transform:translateX(-100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow:hidden;">
+  <div style="padding:18px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.12em;color:var(--accent);">Menu</span>
+    <button onclick="closeSidebar()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px;">×</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:8px 0;">
+    <div class="sb-item" onclick="closeSidebar();openMenu('settings')">⚙️ <span>Settings</span></div>
+    <div class="sb-item" onclick="closeSidebar();openMenu('gamemodes')">◈ <span>Gamemodes</span></div>
+    <div class="sb-item" onclick="closeSidebar();openMenu('leaderboard')">🏆 <span>Leaderboard</span></div>
+    <div class="sb-item" onclick="closeSidebar();openMenu('stats')">👤 <span>Stats</span></div>
+    <div class="sb-item" onclick="closeSidebar();openFriends()" id="sb-friends-item">
+      👥 <span>Friends</span>
+      <span id="friends-badge" style="margin-left:auto;background:#e06060;color:#fff;border-radius:10px;font-size:0.48rem;padding:2px 7px;display:none;">0</span>
+    </div>
+    <div class="sb-item" onclick="closeSidebar();openMinigames()">🎮 <span>Minigames</span></div>
+    <div style="height:1px;background:var(--border);margin:8px 14px;"></div>
+    <div id="sb-user-section" style="padding:10px 14px 4px;"></div>
+  </div>
+</nav>
 <div id="setup-banner">
   <div class="sb-title">⚙ Cloud Setup Needed</div>
   <div class="sb-steps">
@@ -263,15 +371,14 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
 
 <header>
   <div class="header-nav">
-    <button class="nav-btn" onclick="openMenu('settings')">⚙<span class="nav-tip">Settings</span></button>
-    <button class="nav-btn" onclick="openMenu('gamemodes')">◈<span class="nav-tip">Gamemodes</span></button>
-    <button class="nav-btn" onclick="openMenu('leaderboard')">🏆<span class="nav-tip">Leaderboard</span></button>
-    <button class="nav-btn" onclick="openMenu('stats')">👤<span class="nav-tip">Stats</span></button>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebar()" title="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
   <div class="header-center">
     <h1>Wordle</h1>
     <p class="subtitle">Guess the 5-letter word</p>
-    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v17</p>
+    <p class="byline">Made by Zayd W. !!! Have fun!!!&nbsp;&nbsp;·&nbsp;&nbsp;v19</p>
   </div>
   <div class="header-auth" id="header-auth">
     <button class="btn-ghost" onclick="openAuth('login')">Log In</button>
@@ -448,7 +555,7 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
         <div class="aerr" id="acct-pw-err" style="min-height:0;margin:0;"></div>
       </div>
       <!-- Hint -->
-      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;border-bottom:none;">
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;">
         <div class="slbl">Recovery Hint</div>
         <div class="sdesc">Shown to you if you forget your password</div>
         <div style="display:flex;gap:8px;width:100%;align-items:center;margin-top:4px;">
@@ -456,6 +563,16 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
           <button class="acct-save-btn" onclick="saveAccountField('hint')">Save</button>
         </div>
         <div class="aerr" id="acct-hint-err" style="min-height:0;margin:0;"></div>
+      </div>
+      <!-- Bio -->
+      <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px;border-bottom:none;">
+        <div class="slbl">Bio</div>
+        <div class="sdesc">Shown on your public profile (max 160 chars)</div>
+        <div style="display:flex;gap:8px;width:100%;align-items:flex-start;margin-top:4px;">
+          <textarea class="ainput" id="acct-bio" maxlength="160" rows="3" style="flex:1;resize:vertical;min-height:60px;" placeholder="Tell everyone a little about yourself…"></textarea>
+          <button class="acct-save-btn" onclick="saveAccountField('bio')" style="align-self:flex-start;">Save</button>
+        </div>
+        <div class="aerr" id="acct-bio-err" style="min-height:0;margin:0;"></div>
       </div>
     </div>
     <button class="menu-close" onclick="closeOverlay('settings-account-overlay')">Done</button>
@@ -663,6 +780,117 @@ body.light .toggle { background:#d0ccc5; border-color:#bbb; }
       <div class="aerr" id="signup-error"></div>
       <button class="asubmit" onclick="doSignup()">Create Account</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ Friends Modal ══ -->
+<div class="overlay" id="friends-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:90vh;">
+    <div style="padding:20px 22px 0;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="menu-title" style="margin-bottom:0;">Friends</div>
+        <button onclick="clearInterval(frPollInterval);frPollInterval=null;closeOverlay('friends-overlay')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;padding:2px 6px;">×</button>
+      </div>
+    </div>
+    <!-- Not logged in state -->
+    <div id="fr-not-logged-in" style="display:none;padding:0 22px 22px;font-size:0.6rem;color:var(--muted);text-align:center;padding-top:12px;">
+      Log in to use Friends!
+    </div>
+    <!-- Main friends UI -->
+    <div id="fr-main" style="display:none;padding:0 18px 18px;flex:1;overflow:hidden;display:flex;flex-direction:column;">
+      <!-- Add friend search bar -->
+      <div class="fr-search-row">
+        <input class="ainput" id="fr-search-input" type="text" placeholder="Search username to add…" maxlength="20" onkeydown="if(event.key==='Enter')sendFriendRequest()">
+        <button class="fr-add-btn" onclick="sendFriendRequest()">Add</button>
+      </div>
+      <div class="fr-err" id="fr-search-err"></div>
+      <!-- Tabs -->
+      <div class="fr-tabs">
+        <button class="fr-tab active" id="frtab-friends" onclick="switchFrTab('friends')">Friends <span class="fr-tab-badge" id="frbadge-friends" style="display:none"></span></button>
+        <button class="fr-tab" id="frtab-requests" onclick="switchFrTab('requests')">Requests <span class="fr-tab-badge" id="frbadge-requests" style="display:none"></span></button>
+        <button class="fr-tab" id="frtab-sent" onclick="switchFrTab('sent')">Sent</button>
+      </div>
+      <!-- Friends list -->
+      <div id="fr-tab-friends" class="fr-list"></div>
+      <!-- Requests list -->
+      <div id="fr-tab-requests" class="fr-list" style="display:none;"></div>
+      <!-- Sent requests list -->
+      <div id="fr-tab-sent" class="fr-list" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DM / Chat Modal ══ -->
+<div class="overlay" id="dm-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:min(560px,88vh);">
+    <div class="dm-header">
+      <button class="dm-back" onclick="closeDM()">‹</button>
+      <div class="dm-avatar" id="dm-avatar"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="dm-title" id="dm-title"></div>
+        <div class="dm-sub" id="dm-sub">Wordle friend</div>
+      </div>
+      <button onclick="closeDM()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:2px 6px;line-height:1;">×</button>
+    </div>
+    <div class="dm-msgs" id="dm-msgs"></div>
+    <div class="dm-input-row">
+      <input class="dm-input" id="dm-input" type="text" placeholder="Message…" maxlength="500"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDM();}">
+      <button class="dm-send" onclick="sendDM()" title="Send">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Profile View Modal ══ -->
+<div class="overlay" id="profile-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;">
+    <div class="prof-banner"></div>
+    <div style="padding:0 18px 18px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;">
+        <div class="prof-avatar-wrap">
+          <div class="prof-avatar" id="prof-avatar"></div>
+          <div class="status-dot offline" id="prof-status-dot" style="position:absolute;bottom:3px;right:3px;width:11px;height:11px;border-radius:50%;border:2px solid var(--surface);"></div>
+        </div>
+        <button id="prof-msg-btn" style="display:none;padding:8px 14px;background:var(--correct);border:none;color:#fff;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:filter 0.15s;" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">💬 Message</button>
+      </div>
+      <div class="prof-username" id="prof-username"></div>
+      <div id="prof-status-text" style="font-size:0.44rem;color:var(--muted);letter-spacing:0.1em;margin-top:2px;"></div>
+      <div class="prof-bio" id="prof-bio"></div>
+      <div class="prof-stat-grid">
+        <div class="prof-stat"><div class="prof-stat-num" id="prof-streak">0</div><div class="prof-stat-lbl">Best Streak</div></div>
+        <div class="prof-stat"><div class="prof-stat-num" id="prof-wins">0</div><div class="prof-stat-lbl">Total Wins</div></div>
+        <div class="prof-stat"><div class="prof-stat-num" id="prof-joined">—</div><div class="prof-stat-lbl">Joined</div></div>
+      </div>
+    </div>
+    <div style="padding:0 18px 18px;">
+      <button class="menu-close" style="margin-top:0;width:100%;" onclick="closeOverlay('profile-overlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Minigames Modal ══ -->
+<div class="overlay" id="minigames-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:min(620px,92vh);">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="mg-back-btn" onclick="mgBack()" style="display:none;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;">‹</button>
+        <div class="menu-title" style="margin-bottom:0;" id="mg-title">🎮 Minigames</div>
+      </div>
+      <button onclick="closeOverlay('minigames-overlay');mgBack();" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:2px 6px;line-height:1;">×</button>
+    </div>
+    <!-- Game list -->
+    <div id="mg-list" style="padding:16px;overflow-y:auto;flex:1;">
+      <div class="mg-card" onclick="launchMinigame('minesweeper')">
+        <div class="mg-icon">💣</div>
+        <div><div class="mg-name">Minesweeper</div><div class="mg-desc">Classic mine-dodging puzzle. Don't blow up!</div></div>
+      </div>
+      <div class="mg-card" onclick="launchMinigame('dino')">
+        <div class="mg-icon">🦕</div>
+        <div><div class="mg-name">Dino Jump</div><div class="mg-desc">Jump over cacti. How far can you go?</div></div>
+      </div>
+    </div>
+    <!-- Game canvas area -->
+    <div id="mg-game-area" style="display:none;flex:1;overflow:hidden;padding:0;"></div>
   </div>
 </div>
 
@@ -1291,6 +1519,7 @@ function openSettingsSection(section) {
         document.getElementById('acct-username').value = currentUser;
         document.getElementById('acct-email').value = user.email || '';
         document.getElementById('acct-hint').value = user.hint || '';
+        document.getElementById('acct-bio').value = user.bio || '';
         document.getElementById('acct-pw-current').value = '';
         document.getElementById('acct-pw-new').value = '';
         // clear errors
@@ -1315,13 +1544,19 @@ function normalizeUser(user) {
   for (const [k, v] of Object.entries(defaults)) {
     if (user[k] === undefined || user[k] === null) user[k] = v;
   }
+  // Social fields
+  if (!Array.isArray(user.friends))        user.friends = [];
+  if (!Array.isArray(user.friendRequests)) user.friendRequests = [];
+  if (!Array.isArray(user.sentRequests))   user.sentRequests = [];
+  if (typeof user.messages !== 'object' || user.messages === null) user.messages = {};
+  if (typeof user.prefs !== 'object' || user.prefs === null) user.prefs = {};
   return user;
 }
 
 async function saveAccountField(field) {
   if (!currentUser || !IS_CONFIGURED) { showToast('Not logged in or DB not configured'); return; }
-  const errId = { username:'acct-username-err', email:'acct-email-err', password:'acct-pw-err', hint:'acct-hint-err' }[field];
-  const errEl = document.getElementById(errId);
+  const errId = { username:'acct-username-err', email:'acct-email-err', password:'acct-pw-err', hint:'acct-hint-err', bio:'acct-bio-err' }[field];
+  const errEl = document.getElementById(errId) || { textContent:'' };
   errEl.textContent = '';
 
   dbCache = null;
@@ -1382,6 +1617,16 @@ async function saveAccountField(field) {
     dbDirty = true;
     await pushDB();
     showToast('Recovery hint updated!');
+
+  } else if (field === 'bio') {
+    const newBio = document.getElementById('acct-bio').value.trim();
+    user.bio = newBio;
+    dbDirty = true;
+    await pushDB();
+    showToast('Bio updated!');
+    const errEl2 = document.getElementById('acct-bio-err');
+    if (errEl2) { errEl2.style.color = 'var(--correct)'; errEl2.textContent = '✓ Saved!'; setTimeout(() => { errEl2.textContent = ''; errEl2.style.color = ''; }, 2000); }
+    return;
   }
 }
 
@@ -2237,6 +2482,11 @@ async function doLogin() {
   showToast('Welcome back, ' + username + '!');
   // Load cross-device prefs from cloud
   loadPrefsFromCloud(username);
+  // Load friends badge
+  loadFriendsBadge();
+  // Start online heartbeat
+  startHeartbeat();
+  renderSidebarUser();
 }
 
 async function doSignup() {
@@ -2282,6 +2532,835 @@ function simpleHash(str) {
 }
 
 // ══════════════════════════════════════════════
+// FRIENDS & MESSAGING SYSTEM
+// ══════════════════════════════════════════════
+let currentDMUser = null;
+let dmPollInterval = null;
+let frPollInterval = null;
+let frCurrentTab = 'friends';
+
+// ── Normalise: ensure friends/messages fields exist ──
+function ensureSocialFields(user) {
+  if (!Array.isArray(user.friends))        user.friends = [];
+  if (!Array.isArray(user.friendRequests)) user.friendRequests = [];
+  if (!Array.isArray(user.sentRequests))   user.sentRequests = [];
+  if (typeof user.messages !== 'object' || user.messages === null) user.messages = {};
+}
+
+// ── Open/close friends panel ──
+function openFriends() {
+  if (!currentUser) {
+    document.getElementById('fr-not-logged-in').style.display = 'block';
+    document.getElementById('fr-main').style.display = 'none';
+  } else {
+    document.getElementById('fr-not-logged-in').style.display = 'none';
+    document.getElementById('fr-main').style.display = 'flex';
+    loadFriendsPanel();
+    // Auto-refresh friends panel every 8s while open
+    clearInterval(frPollInterval);
+    frPollInterval = setInterval(() => {
+      if (document.getElementById('friends-overlay').classList.contains('show') && !document.getElementById('dm-overlay').classList.contains('show')) {
+        loadFriendsPanel();
+      } else if (!document.getElementById('friends-overlay').classList.contains('show')) {
+        clearInterval(frPollInterval);
+        frPollInterval = null;
+      }
+    }, 8000);
+  }
+  openOverlay('friends-overlay');
+}
+
+function switchFrTab(tab) {
+  frCurrentTab = tab;
+  ['friends','requests','sent'].forEach(t => {
+    document.getElementById('frtab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('fr-tab-' + t).style.display = t === tab ? 'flex' : 'none';
+  });
+}
+
+// ── Load & render the friends panel ──
+async function loadFriendsPanel() {
+  ['friends','requests','sent'].forEach(t => {
+    document.getElementById('fr-tab-' + t).innerHTML = '<div class="fr-empty">Loading…</div>';
+  });
+  const users = await fetchDB();
+  _lastUsersForStatus = users;
+  const me = users[currentUser];
+  if (!me) return;
+  ensureSocialFields(me);
+
+  // Build pfpMap for all relevant users
+  const pfpMap = buildPfpMap(users);
+
+  // ── Friends tab ──
+  const frList = document.getElementById('fr-tab-friends');
+  if (me.friends.length === 0) {
+    frList.innerHTML = '<div class="fr-empty">No friends yet — add someone!</div>';
+  } else {
+    frList.innerHTML = '';
+    me.friends.forEach(name => {
+      const u = users[name] || {};
+      const unread = getUnreadCount(me, name);
+      frList.appendChild(makeFriendRow(name, u, pfpMap[name], [
+        `<button class="fr-btn msg" onclick="openDM('${esc(name)}')">💬 Message${unread ? ` <b>(${unread})</b>` : ''}</button>`,
+        `<button class="fr-btn deny" onclick="removeFriend('${esc(name)}')">Remove</button>`
+      ]));
+    });
+  }
+
+  // ── Requests tab ──
+  const reqList = document.getElementById('fr-tab-requests');
+  const badge = document.getElementById('frbadge-requests');
+  if (me.friendRequests.length === 0) {
+    reqList.innerHTML = '<div class="fr-empty">No pending requests</div>';
+    badge.style.display = 'none';
+  } else {
+    badge.textContent = me.friendRequests.length;
+    badge.style.display = 'inline-block';
+    reqList.innerHTML = '';
+    me.friendRequests.forEach(name => {
+      const u = users[name] || {};
+      reqList.appendChild(makeFriendRow(name, u, pfpMap[name], [
+        `<button class="fr-btn accept" onclick="acceptFriend('${esc(name)}')">Accept</button>`,
+        `<button class="fr-btn deny"   onclick="denyFriend('${esc(name)}')">Decline</button>`
+      ]));
+    });
+  }
+
+  // ── Sent tab ──
+  const sentList = document.getElementById('fr-tab-sent');
+  if (me.sentRequests.length === 0) {
+    sentList.innerHTML = '<div class="fr-empty">No sent requests</div>';
+  } else {
+    sentList.innerHTML = '';
+    me.sentRequests.forEach(name => {
+      const u = users[name] || {};
+      sentList.appendChild(makeFriendRow(name, u, pfpMap[name], [
+        `<button class="fr-btn deny" onclick="cancelFriendRequest('${esc(name)}')">Cancel</button>`
+      ]));
+    });
+  }
+
+  updateFriendsBadge(me);
+}
+
+function buildPfpMap(users) {
+  const map = {};
+  Object.entries(users).forEach(([name, data]) => {
+    if (!data || !data.email) return;
+    if (data.prefs && data.prefs.pfp && data.prefs.pfp !== '__toobig__') {
+      map[name] = data.prefs.pfp;
+    } else {
+      const local = localStorage.getItem('wordleProfilePhoto_' + name);
+      if (local) map[name] = local;
+    }
+  });
+  return map;
+}
+
+function makeFriendRow(name, userData, photo, actionHtmlArr) {
+  const row = document.createElement('div');
+  row.className = 'fr-row';
+  const initial = name[0].toUpperCase();
+  const avatarHtml = photo
+    ? `<div class="fr-avatar" style="position:relative;cursor:pointer;" onclick="openProfile('${esc(name)}')"><img src="${photo}" /></div>`
+    : `<div class="fr-avatar" style="background:var(--correct);position:relative;cursor:pointer;" onclick="openProfile('${esc(name)}')">${initial}</div>`;
+  const cls = _statusClassFromCache(name);
+  const statusDot = `<span class="status-dot ${cls}" style="position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border:2px solid var(--surface);border-radius:50%;"></span>`;
+  row.innerHTML = `
+    <div style="position:relative;flex-shrink:0;">${avatarHtml}${statusDot}</div>
+    <div class="fr-info" style="cursor:pointer;" onclick="openProfile('${esc(name)}')">
+      <div class="fr-name">${esc(name)}</div>
+      <div class="fr-sub">${_statusLabel(cls)} · ${userData.totalWins || 0} wins</div>
+    </div>
+    <div class="fr-actions">${actionHtmlArr.join('')}</div>
+  `;
+  return row;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function updateFriendsBadge(me) {
+  const badge = document.getElementById('friends-badge');
+  if (!badge) return;
+  const count = (me.friendRequests || []).length + getTotalUnread(me);
+  if (count > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function getTotalUnread(me) {
+  let total = 0;
+  Object.keys(me.messages || {}).forEach(partner => {
+    total += getUnreadCount(me, partner);
+  });
+  return total;
+}
+
+function getUnreadCount(me, partner) {
+  const msgs = (me.messages || {})[partner] || [];
+  return msgs.filter(m => m.from === partner && !m.read).length;
+}
+
+// ── Send friend request ──
+async function sendFriendRequest() {
+  if (!currentUser) { showToast('Log in first!'); return; }
+  const target = document.getElementById('fr-search-input').value.trim();
+  const errEl = document.getElementById('fr-search-err');
+  errEl.textContent = '';
+  if (!target) { errEl.textContent = 'Enter a username.'; return; }
+  if (target === currentUser) { errEl.textContent = "You can't add yourself!"; return; }
+  errEl.textContent = 'Sending…';
+
+  dbCache = null;
+  const users = await fetchDB();
+  const me = users[currentUser];
+  const them = users[target];
+  if (!me)   { errEl.textContent = 'Your account not found.'; return; }
+  if (!them) { errEl.textContent = 'User not found.'; return; }
+  ensureSocialFields(me);
+  ensureSocialFields(them);
+
+  if (me.friends.includes(target))           { errEl.textContent = 'Already friends!'; return; }
+  if (me.sentRequests.includes(target))      { errEl.textContent = 'Request already sent.'; return; }
+  if (me.friendRequests.includes(target)) {
+    // They already sent you one — auto-accept!
+    await acceptFriendWith(target, users);
+    errEl.textContent = '';
+    document.getElementById('fr-search-input').value = '';
+    showToast('You\'re now friends with ' + target + '!');
+    loadFriendsPanel();
+    return;
+  }
+
+  them.friendRequests.push(currentUser);
+  me.sentRequests.push(target);
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  errEl.textContent = '';
+  document.getElementById('fr-search-input').value = '';
+  errEl.style.color = 'var(--correct)';
+  errEl.textContent = '✓ Request sent to ' + target + '!';
+  setTimeout(() => { errEl.textContent = ''; errEl.style.color = ''; }, 3000);
+  loadFriendsPanel();
+}
+
+async function acceptFriend(name) {
+  dbCache = null;
+  const users = await fetchDB();
+  await acceptFriendWith(name, users);
+  showToast('You and ' + name + ' are now friends!');
+  loadFriendsPanel();
+}
+
+async function acceptFriendWith(name, users) {
+  const me   = users[currentUser];
+  const them = users[name];
+  if (!me || !them) return;
+  ensureSocialFields(me);
+  ensureSocialFields(them);
+
+  // Add each other as friends
+  if (!me.friends.includes(name))   me.friends.push(name);
+  if (!them.friends.includes(currentUser)) them.friends.push(currentUser);
+
+  // Remove from requests & sent
+  me.friendRequests  = me.friendRequests.filter(r => r !== name);
+  me.sentRequests    = me.sentRequests.filter(r => r !== name);
+  them.friendRequests = them.friendRequests.filter(r => r !== currentUser);
+  them.sentRequests   = them.sentRequests.filter(r => r !== currentUser);
+
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+}
+
+async function denyFriend(name) {
+  dbCache = null;
+  const users = await fetchDB();
+  const me = users[currentUser];
+  if (!me) return;
+  ensureSocialFields(me);
+  me.friendRequests = me.friendRequests.filter(r => r !== name);
+  // Also remove from their sent list
+  const them = users[name];
+  if (them) { ensureSocialFields(them); them.sentRequests = them.sentRequests.filter(r => r !== currentUser); }
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  loadFriendsPanel();
+}
+
+async function cancelFriendRequest(name) {
+  dbCache = null;
+  const users = await fetchDB();
+  const me   = users[currentUser];
+  const them = users[name];
+  if (!me) return;
+  ensureSocialFields(me);
+  me.sentRequests = me.sentRequests.filter(r => r !== name);
+  if (them) { ensureSocialFields(them); them.friendRequests = them.friendRequests.filter(r => r !== currentUser); }
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  loadFriendsPanel();
+}
+
+async function removeFriend(name) {
+  if (!confirm('Remove ' + name + ' as a friend?')) return;
+  dbCache = null;
+  const users = await fetchDB();
+  const me   = users[currentUser];
+  const them = users[name];
+  if (!me) return;
+  ensureSocialFields(me);
+  me.friends = me.friends.filter(f => f !== name);
+  if (them) { ensureSocialFields(them); them.friends = them.friends.filter(f => f !== currentUser); }
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  loadFriendsPanel();
+  showToast('Removed ' + name);
+}
+
+// ══════════════════════════════════════════════
+// DM / MESSAGING
+// ══════════════════════════════════════════════
+async function openDM(partner) {
+  currentDMUser = partner;
+  // Set header
+  document.getElementById('dm-title').textContent = partner;
+  // Avatar
+  const avatarEl = document.getElementById('dm-avatar');
+  const pfp = localStorage.getItem('wordleProfilePhoto_' + partner);
+  avatarEl.innerHTML = pfp ? `<img src="${pfp}" />` : partner[0].toUpperCase();
+  avatarEl.style.background = pfp ? 'none' : 'var(--correct)';
+
+  openOverlay('dm-overlay');
+  await renderDMMessages();
+  // Mark messages from partner as read
+  await markMessagesRead(partner);
+  // Poll for new messages every 6s
+  clearInterval(dmPollInterval);
+  dmPollInterval = setInterval(async () => {
+    if (currentDMUser === partner && document.getElementById('dm-overlay').classList.contains('show')) {
+      await renderDMMessages();
+      await markMessagesRead(partner);
+    } else {
+      clearInterval(dmPollInterval);
+    }
+  }, 6000);
+}
+
+function closeDM() {
+  clearInterval(dmPollInterval);
+  dmPollInterval = null;
+  currentDMUser = null;
+  closeOverlay('dm-overlay');
+  // Return to friends panel
+  openFriends();
+}
+
+async function renderDMMessages() {
+  const msgsEl = document.getElementById('dm-msgs');
+  dbCache = null;
+  const users = await fetchDB();
+  _lastUsersForStatus = users;
+  const me = users[currentUser];
+  if (!me) return;
+  ensureSocialFields(me);
+  const partner = currentDMUser;
+
+  // Update status in DM header
+  const cls = _statusClassFromCache(partner);
+  document.getElementById('dm-sub').textContent = _statusLabel(cls);
+
+  const convo = (me.messages[partner] || []).slice(-100);
+
+  if (convo.length === 0) {
+    msgsEl.innerHTML = `<div class="fr-empty" style="margin:auto;">No messages yet — say hi! 👋</div>`;
+    return;
+  }
+
+  // Check what the partner has read (their copy of the convo)
+  const themUser = users[partner];
+  const theirConvo = themUser ? ((themUser.messages || {})[currentUser] || []) : [];
+  // Build a set of timestamps the partner has marked as read
+  const readByPartner = new Set(theirConvo.filter(m => m.from === currentUser && m.read).map(m => m.ts));
+
+  let html = '';
+  let lastDate = '';
+  convo.forEach((msg, idx) => {
+    const isMe = msg.from === currentUser;
+    const d = new Date(msg.ts);
+    const dateStr = d.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
+    if (dateStr !== lastDate) {
+      html += `<div class="dm-date-divider">${dateStr}</div>`;
+      lastDate = dateStr;
+    }
+    const timeStr = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+
+    // Read receipt — only show on the last message sent by me
+    let receipt = '';
+    if (isMe) {
+      const isLast = convo.slice(idx+1).every(m => m.from !== currentUser);
+      if (isLast) {
+        const read = readByPartner.has(msg.ts);
+        receipt = `<div class="dm-receipt ${read ? 'read' : ''}">${read ? '✓✓ Read' : '✓ Delivered'}</div>`;
+      }
+    }
+
+    html += `<div class="dm-bubble-wrap ${isMe ? 'me' : 'them'}">
+      <div class="dm-bubble">${esc(msg.text)}</div>
+      <div class="dm-ts">${timeStr}</div>
+      ${receipt}
+    </div>`;
+  });
+  const wasAtBottom = msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight < 60;
+  msgsEl.innerHTML = html;
+  if (wasAtBottom) msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function sendDM() {
+  const input = document.getElementById('dm-input');
+  const text = input.value.trim();
+  if (!text || !currentDMUser) return;
+  input.value = '';
+
+  const partner = currentDMUser;
+  const msg = { from: currentUser, text, ts: Date.now(), read: false };
+
+  dbCache = null;
+  const users = await fetchDB();
+  const me   = users[currentUser];
+  const them = users[partner];
+  if (!me || !them) { showToast('Could not send — user not found'); return; }
+  ensureSocialFields(me);
+  ensureSocialFields(them);
+
+  // Store message in BOTH users' records (sender + recipient)
+  if (!me.messages[partner])   me.messages[partner]   = [];
+  if (!them.messages[currentUser]) them.messages[currentUser] = [];
+
+  const sentMsg   = { ...msg, read: true };   // already read by sender
+  const recvMsg   = { ...msg, read: false };  // unread for recipient
+
+  me.messages[partner].push(sentMsg);
+  them.messages[currentUser].push(recvMsg);
+
+  // Cap at 200 messages per conversation
+  if (me.messages[partner].length   > 200) me.messages[partner]   = me.messages[partner].slice(-200);
+  if (them.messages[currentUser].length > 200) them.messages[currentUser] = them.messages[currentUser].slice(-200);
+
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  await renderDMMessages();
+}
+
+async function markMessagesRead(partner) {
+  dbCache = null;
+  const users = await fetchDB();
+  const me = users[currentUser];
+  if (!me) return;
+  ensureSocialFields(me);
+  const convo = me.messages[partner] || [];
+  let changed = false;
+  convo.forEach(m => { if (m.from === partner && !m.read) { m.read = true; changed = true; } });
+  if (changed) {
+    dbDirty = true;
+    await pushDB();
+    dbCache = null;
+    // Refresh badge
+    loadFriendsBadge();
+  }
+}
+
+async function loadFriendsBadge() {
+  if (!currentUser || !IS_CONFIGURED) return;
+  const users = await fetchDB();
+  const me = users[currentUser];
+  if (!me) return;
+  ensureSocialFields(me);
+  updateFriendsBadge(me);
+}
+
+// ── Poll badge every 30s when logged in ──
+setInterval(() => { if (currentUser) loadFriendsBadge(); }, 30000);
+
+// ══════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebar-backdrop');
+  const open = sb.style.transform === 'translateX(0px)' || sb.style.transform === 'translateX(0)';
+  if (open) { closeSidebar(); } else {
+    sb.style.transform = 'translateX(0)';
+    bd.style.display = 'block';
+    renderSidebarUser();
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').style.transform = 'translateX(-100%)';
+  document.getElementById('sidebar-backdrop').style.display = 'none';
+}
+function renderSidebarUser() {
+  const el = document.getElementById('sb-user-section');
+  if (!el) return;
+  if (!currentUser) {
+    el.innerHTML = `<button class="fr-btn accept" style="width:100%;text-align:center;padding:9px;" onclick="closeSidebar();openAuth('login')">Log In</button>`;
+  } else {
+    const photo = localStorage.getItem('wordleProfilePhoto_' + currentUser);
+    const av = photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : currentUser[0].toUpperCase();
+    const dot = getStatusClass(currentUser);
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="closeSidebar();openMenu('stats')">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--correct);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;overflow:hidden;flex-shrink:0;position:relative;">
+          ${av}
+          <span class="status-dot ${dot}" style="position:absolute;bottom:0;right:0;width:9px;height:9px;border:2px solid var(--surface);border-radius:50%;"></span>
+        </div>
+        <div style="min-width:0;">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.06em;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(currentUser)}</div>
+          <div style="font-size:0.44rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">View Profile</div>
+        </div>
+      </div>
+      <button style="width:100%;margin-top:8px;padding:7px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;" onclick="closeSidebar();doLogout()">Log Out</button>
+    `;
+  }
+}
+
+// ══════════════════════════════════════════════
+// ONLINE / IDLE / OFFLINE STATUS
+// ══════════════════════════════════════════════
+// We store { ts, status } in user.lastSeen every ~20s.
+// status: 'online' | 'idle' (tab hidden) | offline (> 2 min since lastSeen)
+let statusHeartbeatInterval = null;
+
+function startHeartbeat() {
+  if (statusHeartbeatInterval) clearInterval(statusHeartbeatInterval);
+  pushStatus();
+  statusHeartbeatInterval = setInterval(pushStatus, 20000);
+}
+
+async function pushStatus() {
+  if (!currentUser || !IS_CONFIGURED) return;
+  const status = document.hidden ? 'idle' : 'online';
+  // Update locally then push
+  const users = await fetchDB();
+  const me = users[currentUser];
+  if (!me) return;
+  me.lastSeen = { ts: Date.now(), status };
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (currentUser) pushStatus();
+});
+
+function getStatusClass(username) {
+  // Uses cached DB data — pass users object for accuracy, else returns 'offline'
+  return _statusClassFromCache(username);
+}
+let _lastUsersForStatus = {};
+function _statusClassFromCache(username) {
+  const u = _lastUsersForStatus[username];
+  if (!u || !u.lastSeen) return 'offline';
+  const diff = Date.now() - u.lastSeen.ts;
+  if (diff > 120000) return 'offline';
+  if (u.lastSeen.status === 'idle' || diff > 40000) return 'idle';
+  return 'online';
+}
+function _statusLabel(cls) {
+  return cls === 'online' ? '🟢 Online' : cls === 'idle' ? '🟡 Idle' : '⚫ Offline';
+}
+
+// ══════════════════════════════════════════════
+// PROFILE VIEW
+// ══════════════════════════════════════════════
+async function openProfile(username) {
+  const users = await fetchDB();
+  _lastUsersForStatus = users;
+  const u = users[username] || {};
+  const photo = (u.prefs && u.prefs.pfp && u.prefs.pfp !== '__toobig__') ? u.prefs.pfp : localStorage.getItem('wordleProfilePhoto_' + username);
+
+  // Avatar
+  const avEl = document.getElementById('prof-avatar');
+  avEl.innerHTML = photo ? `<img src="${photo}">` : username[0].toUpperCase();
+  avEl.style.background = photo ? 'none' : 'var(--correct)';
+
+  // Status dot
+  const cls = _statusClassFromCache(username);
+  const dot = document.getElementById('prof-status-dot');
+  dot.className = `status-dot ${cls}`;
+  document.getElementById('prof-status-text').textContent = _statusLabel(cls);
+
+  document.getElementById('prof-username').textContent = username;
+  document.getElementById('prof-bio').textContent = u.bio || 'No bio yet.';
+  document.getElementById('prof-streak').textContent = u.bestStreak || 0;
+  document.getElementById('prof-wins').textContent = u.totalWins || 0;
+  document.getElementById('prof-joined').textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString([], { month:'short', year:'numeric' }) : '—';
+
+  // Message button — only for friends who aren't you
+  const msgBtn = document.getElementById('prof-msg-btn');
+  const isFriend = currentUser && (u.friends || []).includes(currentUser);
+  if (currentUser && username !== currentUser && isFriend) {
+    msgBtn.style.display = 'block';
+    msgBtn.onclick = () => { closeOverlay('profile-overlay'); openDM(username); };
+  } else {
+    msgBtn.style.display = 'none';
+  }
+
+  openOverlay('profile-overlay');
+}
+
+// ══════════════════════════════════════════════
+// MINIGAMES
+// ══════════════════════════════════════════════
+function openMinigames() { openOverlay('minigames-overlay'); }
+
+function mgBack() {
+  document.getElementById('mg-list').style.display = 'block';
+  document.getElementById('mg-game-area').style.display = 'none';
+  document.getElementById('mg-game-area').innerHTML = '';
+  document.getElementById('mg-back-btn').style.display = 'none';
+  document.getElementById('mg-title').textContent = '🎮 Minigames';
+}
+
+function launchMinigame(game) {
+  document.getElementById('mg-list').style.display = 'none';
+  const area = document.getElementById('mg-game-area');
+  area.style.display = 'block';
+  document.getElementById('mg-back-btn').style.display = 'block';
+  if (game === 'minesweeper') {
+    document.getElementById('mg-title').textContent = '💣 Minesweeper';
+    area.innerHTML = buildMinesweeper();
+    initMinesweeper();
+  } else if (game === 'dino') {
+    document.getElementById('mg-title').textContent = '🦕 Dino Jump';
+    area.innerHTML = buildDino();
+    initDino();
+  }
+}
+
+// ── MINESWEEPER ──────────────────────────────
+function buildMinesweeper() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;height:100%;padding:12px;gap:10px;">
+    <div style="display:flex;gap:12px;align-items:center;flex-shrink:0;">
+      <select id="ms-diff" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:0.55rem;cursor:pointer;">
+        <option value="easy">Easy (9×9, 10 mines)</option>
+        <option value="medium" selected>Medium (16×16, 40 mines)</option>
+        <option value="hard">Hard (16×30, 99 mines)</option>
+      </select>
+      <button onclick="initMinesweeper()" style="padding:6px 14px;background:var(--correct);border:none;color:#fff;font-size:0.55rem;font-weight:700;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;">New</button>
+      <span id="ms-mines" style="font-size:0.65rem;color:var(--accent);">💣 10</span>
+      <span id="ms-time"  style="font-size:0.65rem;color:var(--muted);">⏱ 0</span>
+    </div>
+    <div id="ms-board" style="overflow:auto;flex:1;display:flex;align-items:flex-start;justify-content:center;"></div>
+    <div id="ms-msg" style="font-size:0.8rem;font-weight:700;letter-spacing:0.1em;min-height:20px;color:var(--accent);"></div>
+  </div>`;
+}
+
+let msState = null, msTimer = null;
+function initMinesweeper() {
+  clearInterval(msTimer);
+  document.getElementById('ms-msg').textContent = '';
+  const diff = document.getElementById('ms-diff').value;
+  const configs = { easy:{r:9,c:9,m:10}, medium:{r:16,c:16,m:40}, hard:{r:16,c:30,m:99} };
+  const {r,c,m} = configs[diff];
+  document.getElementById('ms-mines').textContent = '💣 ' + m;
+  document.getElementById('ms-time').textContent = '⏱ 0';
+  msState = { rows:r, cols:c, mines:m, board:[], revealed:[], flagged:[], started:false, dead:false, won:false, secs:0 };
+  // Init boards
+  for (let i=0;i<r;i++) { msState.board.push(Array(c).fill(0)); msState.revealed.push(Array(c).fill(false)); msState.flagged.push(Array(c).fill(false)); }
+  renderMsBoard();
+}
+
+function placeMines(firstR, firstC) {
+  const {rows,cols,mines,board} = msState;
+  let placed=0;
+  while(placed<mines){const r=Math.floor(Math.random()*rows),c=Math.floor(Math.random()*cols);if(board[r][c]===-1||(Math.abs(r-firstR)<=1&&Math.abs(c-firstC)<=1))continue;board[r][c]=-1;placed++;}
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(board[r][c]===-1)continue;let n=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&board[nr][nc]===-1)n++;}board[r][c]=n;}
+}
+
+function msReveal(r,c) {
+  if(msState.dead||msState.won||msState.revealed[r][c]||msState.flagged[r][c])return;
+  if(!msState.started){msState.started=true;placeMines(r,c);msState.secs=0;clearInterval(msTimer);msTimer=setInterval(()=>{msState.secs++;const el=document.getElementById('ms-time');if(el)el.textContent='⏱ '+msState.secs;else clearInterval(msTimer);},1000);}
+  msState.revealed[r][c]=true;
+  if(msState.board[r][c]===-1){msState.dead=true;clearInterval(msTimer);revealAllMines();renderMsBoard();document.getElementById('ms-msg').textContent='💥 BOOM! Game over.';document.getElementById('ms-msg').style.color='#e06060';return;}
+  if(msState.board[r][c]===0){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<msState.rows&&nc>=0&&nc<msState.cols&&!msState.revealed[nr][nc])msReveal(nr,nc);}}
+  checkMsWin();renderMsBoard();
+}
+
+function revealAllMines(){for(let r=0;r<msState.rows;r++)for(let c=0;c<msState.cols;c++)if(msState.board[r][c]===-1)msState.revealed[r][c]=true;}
+
+function msFlag(r,c){if(msState.dead||msState.won||msState.revealed[r][c])return;msState.flagged[r][c]=!msState.flagged[r][c];const remaining=msState.mines-msState.flagged.flat().filter(Boolean).length;document.getElementById('ms-mines').textContent='💣 '+remaining;renderMsBoard();}
+
+function checkMsWin(){const total=msState.rows*msState.cols;const revCount=msState.revealed.flat().filter(Boolean).length;if(revCount===total-msState.mines){msState.won=true;clearInterval(msTimer);document.getElementById('ms-msg').textContent='🎉 You win! Time: '+msState.secs+'s';document.getElementById('ms-msg').style.color='var(--correct)';}}
+
+function renderMsBoard(){
+  const el=document.getElementById('ms-board');if(!el)return;
+  const numColors=['','#6ca0ff','#4caf7d','#e06060','#7b4b9b','#c0392b','#1abc9c','#2c3e50','#888'];
+  let html='<table style="border-collapse:collapse;user-select:none;">';
+  for(let r=0;r<msState.rows;r++){html+='<tr>';for(let c=0;c<msState.cols;c++){const rev=msState.revealed[r][c],flag=msState.flagged[r][c],val=msState.board[r][c];
+    let content='',bg='var(--key-bg)',color='var(--text)',border='1px solid var(--border)',cursor='pointer';
+    if(rev){bg=val===-1?'#e06060':'var(--surface)';content=val===-1?'💣':val>0?val:'';color=numColors[val]||'var(--text)';cursor='default';}
+    else if(flag){content='🚩';}
+    const sz=msState.cols>16?'18px':'22px';
+    html+=`<td onclick="msReveal(${r},${c})" oncontextmenu="event.preventDefault();msFlag(${r},${c})" style="width:${sz};height:${sz};text-align:center;vertical-align:middle;background:${bg};border:${border};font-size:${val>0&&rev?'0.6rem':'0.75rem'};color:${color};cursor:${cursor};font-weight:700;transition:background 0.08s;">${content}</td>`;
+  }html+='</tr>';}
+  html+='</table>';
+  el.innerHTML=html;
+}
+
+// ── DINO GAME ────────────────────────────────
+function buildDino() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;height:100%;padding:14px;gap:10px;">
+    <div style="display:flex;gap:16px;align-items:center;flex-shrink:0;">
+      <span style="font-size:0.65rem;color:var(--muted);">Score: <b id="dino-score" style="color:var(--accent);">0</b></span>
+      <span style="font-size:0.65rem;color:var(--muted);">Best: <b id="dino-best" style="color:var(--accent);">0</b></span>
+      <span id="dino-status" style="font-size:0.55rem;color:var(--muted);">Press Space or Tap to start</span>
+    </div>
+    <canvas id="dino-canvas" width="560" height="160" style="border:1px solid var(--border);border-radius:4px;background:var(--bg);max-width:100%;cursor:pointer;" tabindex="0"></canvas>
+  </div>`;
+}
+
+let dinoState = null, dinoRAF = null;
+function initDino() {
+  const canvas = document.getElementById('dino-canvas');
+  if (!canvas) return;
+  canvas.addEventListener('click', dinoPressHandler);
+  canvas.addEventListener('keydown', e => { if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();dinoPressHandler();}});
+  canvas.focus();
+  dinoReset(canvas);
+}
+
+function dinoPressHandler() {
+  if (!dinoState) return;
+  if (dinoState.over) { dinoReset(document.getElementById('dino-canvas')); return; }
+  if (!dinoState.running) { dinoState.running = true; document.getElementById('dino-status').textContent = ''; }
+  if (dinoState.dino.onGround) { dinoState.dino.vy = -13; dinoState.dino.onGround = false; }
+}
+
+function dinoReset(canvas) {
+  if (dinoRAF) cancelAnimationFrame(dinoRAF);
+  const best = dinoState ? dinoState.best : parseInt(localStorage.getItem('dinoHighScore')||'0');
+  dinoState = {
+    running:false, over:false, best,
+    score:0, scoreDisplay:0, speed:4, frame:0,
+    dino:{ x:60, y:110, w:30, h:40, vy:0, onGround:true },
+    obstacles:[], nextObs:80,
+    clouds:[], groundX:0
+  };
+  document.getElementById('dino-score').textContent = '0';
+  document.getElementById('dino-best').textContent = best;
+  document.getElementById('dino-status').textContent = 'Press Space or Tap to start';
+  dinoLoop(canvas);
+}
+
+function dinoLoop(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const ground = 140;
+  const s = dinoState;
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    const fg = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#f0ede8';
+    const mu = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#555';
+    const ac = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#e8d5b7';
+
+    // Ground
+    ctx.fillStyle = mu;
+    ctx.fillRect(0, ground+s.dino.h, W, 2);
+
+    if (s.running && !s.over) {
+      s.frame++;
+      // Speed up over time
+      s.speed = 4 + Math.floor(s.frame / 300) * 0.5;
+      // Score
+      if (s.frame % 6 === 0) { s.score++; document.getElementById('dino-score').textContent = s.score; }
+
+      // Dino physics
+      if (!s.dino.onGround) {
+        s.dino.vy += 0.7;
+        s.dino.y += s.dino.vy;
+        if (s.dino.y >= ground) { s.dino.y = ground; s.dino.vy = 0; s.dino.onGround = true; }
+      }
+
+      // Spawn obstacles
+      s.nextObs--;
+      if (s.nextObs <= 0) {
+        const h = 24 + Math.random() * 28;
+        s.obstacles.push({ x:W+10, y:ground+s.dino.h-h, w:16, h });
+        s.nextObs = 70 + Math.random() * 80 - Math.floor(s.frame/600)*10;
+        s.nextObs = Math.max(s.nextObs, 35);
+      }
+      s.obstacles.forEach(o => o.x -= s.speed);
+      s.obstacles = s.obstacles.filter(o => o.x > -40);
+
+      // Collision
+      const d = s.dino;
+      const pad = 5;
+      for (const o of s.obstacles) {
+        if (d.x+pad < o.x+o.w-pad && d.x+d.w-pad > o.x+pad && d.y+pad < o.y+o.h && d.y+d.h > o.y+pad) {
+          s.over = true;
+          if (s.score > s.best) { s.best = s.score; localStorage.setItem('dinoHighScore', s.score); document.getElementById('dino-best').textContent = s.score; }
+          document.getElementById('dino-status').textContent = 'Game over! Tap to restart.';
+        }
+      }
+    }
+
+    // Draw dino (pixel-ish rectangle dino)
+    ctx.fillStyle = ac;
+    ctx.fillRect(s.dino.x, s.dino.y, s.dino.w, s.dino.h);
+    // Eye
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#0f0f0f';
+    ctx.fillRect(s.dino.x+20, s.dino.y+6, 5, 5);
+    // Legs (animate)
+    if (s.dino.onGround && s.running) {
+      const leg = s.frame % 16 < 8;
+      ctx.fillStyle = ac;
+      ctx.fillRect(s.dino.x+4, s.dino.y+s.dino.h, 8, leg?10:6);
+      ctx.fillRect(s.dino.x+16, s.dino.y+s.dino.h, 8, leg?6:10);
+    }
+
+    // Draw obstacles (cacti)
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--correct').trim()||'#538d4e';
+    s.obstacles.forEach(o => {
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+      ctx.fillRect(o.x-6, o.y+8, 6, o.h-16);
+      ctx.fillRect(o.x+o.w, o.y+8, 6, o.h-16);
+    });
+
+    // Game over overlay
+    if (s.over) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = fg;
+      ctx.font = `bold 22px 'Space Mono', monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', W/2, H/2-10);
+      ctx.font = `13px 'Space Mono', monospace`;
+      ctx.fillStyle = mu;
+      ctx.fillText('Tap or press Space to restart', W/2, H/2+16);
+      ctx.textAlign = 'left';
+    }
+
+    dinoRAF = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ══════════════════════════════════════════════
 // KEYBOARD INPUT
 // ══════════════════════════════════════════════
 document.addEventListener('keydown', e => {
@@ -2312,6 +3391,11 @@ document.addEventListener('DOMContentLoaded', () => {
   await loadUser();
   loadMode();
   initGame();
+  if (currentUser) {
+    loadFriendsBadge();
+    startHeartbeat();
+  }
+  renderSidebarUser();
 })();
 </script>
 </body>
