@@ -435,6 +435,7 @@ body.light #profile-overlay .modal > div:first-child > div:first-child { /* bann
       👥 <span>Friends</span>
       <span id="friends-badge" style="margin-left:auto;background:#e06060;color:#fff;border-radius:10px;font-size:0.48rem;padding:2px 7px;display:none;">0</span>
     </div>
+    <div class="sb-item" onclick="closeSidebar();openGroupChats()">💬 <span>Group Chats</span></div>
     <div class="sb-item" onclick="closeSidebar();openMinigames()">🎮 <span>Minigames</span></div>
     <div style="height:1px;background:var(--border);margin:8px 14px;"></div>
     <div id="sb-user-section" style="padding:10px 14px 4px;"></div>
@@ -4430,6 +4431,930 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   renderSidebarUser();
 })();
+
+  // ══════════════════════════════════════════════
+// GROUP CHATS
+// ══════════════════════════════════════════════
+// Group chats are stored at the top level of the DB as:
+//   groupchats: { [gcId]: { name, members:[], messages:[], createdBy, createdAt } }
+// Each message: { from, text, ts }
+
+let currentGCId = null;
+let gcPollInterval = null;
+
+// ── Helper: read/write groupchats sub-object ──
+async function fetchGCs() {
+  const db = await fetchDB();
+  if (!db.groupchats || typeof db.groupchats !== 'object') db.groupchats = {};
+  return db.groupchats;
+}
+
+function gcId() {
+  return 'gc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+// ── Open group chats list ──
+async function openGroupChats() {
+  if (!currentUser) { showToast('Log in to use group chats!'); return; }
+  openOverlay('gc-overlay');
+  await renderGCList();
+}
+
+async function renderGCList() {
+  const area = document.getElementById('gc-list-area');
+  area.innerHTML = '<div class="lb-empty">Loading…</div>';
+  const gcs = await fetchGCs();
+  const myGCs = Object.entries(gcs).filter(([, g]) => g.members && g.members.includes(currentUser));
+  if (myGCs.length === 0) {
+    area.innerHTML = '<div class="lb-empty">No group chats yet — create one!</div>';
+    return;
+  }
+  area.innerHTML = '';
+  myGCs.sort((a, b) => {
+    const aLast = a[1].messages && a[1].messages.length ? a[1].messages[a[1].messages.length - 1].ts : 0;
+    const bLast = b[1].messages && b[1].messages.length ? b[1].messages[b[1].messages.length - 1].ts : 0;
+    return bLast - aLast;
+  });
+  myGCs.forEach(([id, g]) => {
+    const lastMsg = g.messages && g.messages.length ? g.messages[g.messages.length - 1] : null;
+    const preview = lastMsg ? (lastMsg.text.startsWith('__IMG__') ? '🖼 Image' : lastMsg.text.slice(0, 50)) : 'No messages yet';
+    const unread = _gcUnreadCount(g, id);
+    const div = document.createElement('div');
+    div.className = 'fr-row';
+    div.style.cursor = 'pointer';
+    div.onclick = () => openGCRoom(id);
+    div.innerHTML = `
+      <div style="width:38px;height:38px;background:var(--present);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">💬</div>
+      <div class="fr-info">
+        <div class="fr-name">${esc(g.name)}${unread ? ` <span style="background:#e06060;color:#fff;border-radius:8px;font-size:0.4rem;padding:1px 5px;vertical-align:middle;">${unread}</span>` : ''}</div>
+        <div class="fr-sub" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(preview)}</div>
+      </div>
+      <div style="font-size:0.42rem;color:var(--muted);flex-shrink:0;">${g.members.length} members</div>
+    `;
+    area.appendChild(div);
+  });
+}
+
+function _gcUnreadCount(g, id) {
+  const readTs = parseInt(localStorage.getItem('gcRead_' + id) || '0');
+  if (!g.messages) return 0;
+  return g.messages.filter(m => m.from !== currentUser && m.ts > readTs).length;
+}
+
+// ── Create group ──
+async function openCreateGC() {
+  if (!currentUser) return;
+  document.getElementById('gc-name-input').value = '';
+  document.getElementById('gc-create-err').textContent = '';
+  // Populate friend checkboxes
+  const db = await fetchDB();
+  const me = db[currentUser] || {};
+  ensureSocialFields(me);
+  const container = document.getElementById('gc-friend-checkboxes');
+  if (me.friends.length === 0) {
+    container.innerHTML = '<div class="fr-empty" style="padding:10px 0;">Add friends first to create a group!</div>';
+  } else {
+    const pfpMap = buildPfpMap(db);
+    container.innerHTML = me.friends.map(name => {
+      const u = db[name] || {};
+      const photo = pfpMap[name];
+      const av = photo
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : `<div style="width:24px;height:24px;border-radius:50%;background:var(--correct);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;flex-shrink:0;">${name[0].toUpperCase()}</div>`;
+      return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 8px;border:1px solid var(--border);border-radius:3px;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" value="${esc(name)}" style="accent-color:var(--correct);width:14px;height:14px;flex-shrink:0;">
+        ${av}
+        <span style="font-family:'Space Mono',monospace;font-size:0.58rem;">${esc(u.displayName || name)}</span>
+      </label>`;
+    }).join('');
+  }
+  closeOverlay('gc-overlay');
+  openOverlay('gc-create-overlay');
+}
+
+async function doCreateGC() {
+  const name = document.getElementById('gc-name-input').value.trim();
+  const errEl = document.getElementById('gc-create-err');
+  errEl.textContent = '';
+  if (!name) { errEl.textContent = 'Please enter a group name.'; return; }
+  const checked = [...document.querySelectorAll('#gc-friend-checkboxes input:checked')].map(el => el.value);
+  if (checked.length === 0) { errEl.textContent = 'Select at least one friend.'; return; }
+
+  errEl.textContent = 'Creating…';
+  dbCache = null;
+  const db = await fetchDB();
+  if (!db.groupchats) db.groupchats = {};
+
+  const id = gcId();
+  db.groupchats[id] = {
+    name,
+    members: [currentUser, ...checked],
+    messages: [],
+    createdBy: currentUser,
+    createdAt: Date.now()
+  };
+
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+
+  closeOverlay('gc-create-overlay');
+  showToast('Group "' + name + '" created!');
+  openGCRoom(id);
+}
+
+// ── Open a group chat room ──
+async function openGCRoom(id) {
+  currentGCId = id;
+  closeOverlay('gc-overlay');
+  openOverlay('gc-room-overlay');
+  await renderGCRoom();
+  _markGCRead(id);
+
+  clearInterval(gcPollInterval);
+  gcPollInterval = setInterval(async () => {
+    if (currentGCId === id && document.getElementById('gc-room-overlay').classList.contains('show')) {
+      await renderGCRoom();
+      _markGCRead(id);
+    } else {
+      clearInterval(gcPollInterval);
+    }
+  }, 6000);
+}
+
+function closeGCRoom() {
+  clearInterval(gcPollInterval);
+  gcPollInterval = null;
+  currentGCId = null;
+  closeOverlay('gc-room-overlay');
+  openGroupChats();
+}
+
+function _markGCRead(id) {
+  const now = Date.now();
+  localStorage.setItem('gcRead_' + id, now);
+}
+
+async function renderGCRoom() {
+  const msgsEl = document.getElementById('gc-msgs');
+  if (!msgsEl) return;
+  dbCache = null;
+  const gcs = await fetchGCs();
+  const g = gcs[currentGCId];
+  if (!g) { showToast('Group not found'); closeGCRoom(); return; }
+
+  document.getElementById('gc-room-title').textContent = g.name;
+  document.getElementById('gc-room-members').textContent = g.members.join(', ');
+
+  const msgs = (g.messages || []).slice(-100);
+  if (msgs.length === 0) {
+    msgsEl.innerHTML = '<div class="fr-empty" style="margin:auto;">No messages yet — say hi! 👋</div>';
+    return;
+  }
+
+  const db = await fetchDB();
+  const pfpMap = buildPfpMap(db);
+
+  const wasAtBottom = msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight < 80;
+  let html = '';
+  let lastDate = '';
+
+  msgs.forEach(msg => {
+    const isMe = msg.from === currentUser;
+    const d = new Date(msg.ts);
+    const dateStr = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    if (dateStr !== lastDate) {
+      html += `<div class="dm-date-divider">${dateStr}</div>`;
+      lastDate = dateStr;
+    }
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const photo = pfpMap[msg.from];
+    const avContent = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : msg.from[0].toUpperCase();
+    const avBg = photo ? 'none' : 'var(--correct)';
+
+    let bubbleContent;
+    if (msg.text && msg.text.startsWith('__IMG__')) {
+      bubbleContent = `<img class="dm-img" src="${msg.text.slice(7)}" onclick="openLightbox(this.src)" loading="lazy">`;
+    } else {
+      bubbleContent = `<div class="dm-bubble">${esc(msg.text || '')}</div>`;
+    }
+
+    if (isMe) {
+      html += `<div class="dm-bubble-wrap me">
+        <div class="dm-bubble-outer">${bubbleContent}</div>
+        <div class="dm-ts">${timeStr}</div>
+      </div>`;
+    } else {
+      html += `<div class="dm-bubble-wrap them">
+        <div style="display:flex;align-items:flex-end;gap:6px;">
+          <div style="width:26px;height:26px;background:${avBg};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.75rem;flex-shrink:0;overflow:hidden;">${avContent}</div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:0.42rem;color:var(--muted);margin-bottom:2px;padding-left:2px;">${esc(msg.from)}</div>
+            <div class="dm-bubble-outer">${bubbleContent}</div>
+          </div>
+        </div>
+        <div class="dm-ts" style="padding-left:32px;">${timeStr}</div>
+      </div>`;
+    }
+  });
+
+  msgsEl.innerHTML = html;
+  if (wasAtBottom) msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+// ── Send a group message ──
+let _gcSendQueue = Promise.resolve();
+
+async function sendGCMessage() {
+  const input = document.getElementById('gc-input');
+  const text = input.value.trim();
+  if (!text || !currentGCId) return;
+  input.value = '';
+  const id = currentGCId;
+  const ts = Date.now() + Math.random();
+  const tsInt = Math.round(ts);
+  _gcShowOptimistic(text, tsInt);
+  _gcSendQueue = _gcSendQueue.then(() => _atomicSendGC(id, text, tsInt));
+}
+
+function _gcShowOptimistic(text, ts) {
+  const msgsEl = document.getElementById('gc-msgs');
+  if (!msgsEl) return;
+  const empty = msgsEl.querySelector('.fr-empty');
+  if (empty) empty.remove();
+  const timeStr = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isImg = text.startsWith('__IMG__');
+  const bubbleContent = isImg
+    ? `<img class="dm-img" src="${text.slice(7)}" style="opacity:0.6">`
+    : `<div class="dm-bubble" style="opacity:0.75">${esc(text)}</div>`;
+  const wrap = document.createElement('div');
+  wrap.className = 'dm-bubble-wrap me';
+  wrap.dataset.optTs = ts;
+  wrap.innerHTML = `<div class="dm-bubble-outer">${bubbleContent}</div><div class="dm-ts">${timeStr}</div>`;
+  msgsEl.appendChild(wrap);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function _atomicSendGC(id, text, ts) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      dbCache = null;
+      const db = await fetchDB();
+      if (!db.groupchats) db.groupchats = {};
+      const g = db.groupchats[id];
+      if (!g) { showToast('Group not found'); return; }
+      if (!g.messages) g.messages = [];
+      // Idempotent
+      if (!g.messages.some(m => m.ts === ts && m.from === currentUser)) {
+        g.messages.push({ from: currentUser, text, ts });
+        if (g.messages.length > 300) g.messages = g.messages.slice(-300);
+      }
+      dbDirty = true;
+      await pushDB();
+      dbCache = null;
+      if (currentGCId === id) await renderGCRoom();
+      return;
+    } catch (e) {
+      if (attempt < 3) await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+      else showToast('Message failed');
+    }
+  }
+}
+
+// ── Group info / settings ──
+async function openGCInfo() {
+  const gcs = await fetchGCs();
+  const g = gcs[currentGCId];
+  if (!g) return;
+
+  document.getElementById('gc-info-title').textContent = g.name;
+
+  // Members list
+  const db = await fetchDB();
+  const pfpMap = buildPfpMap(db);
+  const membersList = document.getElementById('gc-info-members-list');
+  membersList.innerHTML = g.members.map(name => {
+    const u = db[name] || {};
+    const photo = pfpMap[name];
+    const av = photo
+      ? `<img src="${photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:28px;height:28px;border-radius:50%;background:var(--correct);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;">${name[0].toUpperCase()}</div>`;
+    const isCreator = name === g.createdBy;
+    const canKick = g.createdBy === currentUser && name !== currentUser;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 4px;">
+      ${av}
+      <span style="font-family:'Space Mono',monospace;font-size:0.58rem;flex:1;">${esc(u.displayName || name)}${isCreator ? ' 👑' : ''}</span>
+      ${canKick ? `<button onclick="kickGCMember('${esc(name)}')" style="padding:3px 8px;background:transparent;border:1px solid #e06060;color:#e06060;font-size:0.44rem;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:0.08em;">Remove</button>` : ''}
+    </div>`;
+  }).join('');
+
+  // Add member section — friends not already in group
+  const me = db[currentUser] || {};
+  ensureSocialFields(me);
+  const notInGroup = me.friends.filter(f => !g.members.includes(f));
+  const addSection = document.getElementById('gc-add-member-section');
+  const addBoxes = document.getElementById('gc-add-checkboxes');
+  if (notInGroup.length === 0) {
+    addSection.style.display = 'none';
+  } else {
+    addSection.style.display = 'block';
+    addBoxes.innerHTML = notInGroup.map(name => {
+      const u = db[name] || {};
+      return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border:1px solid var(--border);border-radius:3px;">
+        <input type="checkbox" value="${esc(name)}" style="accent-color:var(--correct);width:13px;height:13px;">
+        <span style="font-family:'Space Mono',monospace;font-size:0.55rem;">${esc(u.displayName || name)}</span>
+      </label>`;
+    }).join('');
+  }
+
+  openOverlay('gc-info-overlay');
+}
+
+async function doAddGCMembers() {
+  const checked = [...document.querySelectorAll('#gc-add-checkboxes input:checked')].map(el => el.value);
+  if (checked.length === 0) { showToast('Select at least one friend to add.'); return; }
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g) return;
+  checked.forEach(name => { if (!g.members.includes(name)) g.members.push(name); });
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  showToast('Members added!');
+  renderGCRoom();
+}
+
+async function kickGCMember(name) {
+  if (!confirm('Remove ' + name + ' from the group?')) return;
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g || g.createdBy !== currentUser) return;
+  g.members = g.members.filter(m => m !== name);
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  showToast(name + ' removed.');
+  openGCInfo();
+}
+
+async function leaveGC() {
+  if (!confirm('Leave this group?')) return;
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g) return;
+  g.members = g.members.filter(m => m !== currentUser);
+  // If creator leaves and others remain, pass creator role
+  if (g.createdBy === currentUser && g.members.length > 0) g.createdBy = g.members[0];
+  // If empty, delete the group
+  if (g.members.length === 0) delete db.groupchats[currentGCId];
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  closeGCRoom();
+  showToast('You left the group.');
+}
+
+// ── GC emoji picker ──
+function toggleGCEmojiPicker() {
+  const picker = document.getElementById('gc-emoji-picker');
+  if (!picker) return;
+  const isOpen = picker.style.display === 'flex';
+  picker.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) {
+    if (!picker.dataset.built) {
+      picker.dataset.built = '1';
+      picker.style.flexWrap = 'wrap';
+      picker.innerHTML = EMOJI_LIST.map(e =>
+        `<span onclick="insertGCEmoji('${e}')" style="font-size:1.3rem;cursor:pointer;padding:3px 4px;border-radius:4px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background=''">${e}</span>`
+      ).join('');
+    }
+    setTimeout(() => document.addEventListener('click', _closeGCEmojiOutside, { once: true }), 0);
+  }
+}
+
+function _closeGCEmojiOutside(e) {
+  const picker = document.getElementById('gc-emoji-picker');
+  const btn = document.getElementById('gc-emoji-btn');
+  if (picker && !picker.contains(e.target) && e.target !== btn) picker.style.display = 'none';
+}
+
+function insertGCEmoji(emoji) {
+  const input = document.getElementById('gc-input');
+  if (!input) return;
+  const pos = input.selectionStart || input.value.length;
+  input.value = input.value.slice(0, pos) + emoji + input.value.slice(pos);
+  input.focus();
+  input.selectionStart = input.selectionEnd = pos + emoji.length;
+  document.getElementById('gc-emoji-picker').style.display = 'none';
+}
 </script>
+  // ══════════════════════════════════════════════
+// GROUP CHATS
+// ══════════════════════════════════════════════
+// Group chats are stored at the top level of the DB as:
+//   groupchats: { [gcId]: { name, members:[], messages:[], createdBy, createdAt } }
+// Each message: { from, text, ts }
+
+let currentGCId = null;
+let gcPollInterval = null;
+
+// ── Helper: read/write groupchats sub-object ──
+async function fetchGCs() {
+  const db = await fetchDB();
+  if (!db.groupchats || typeof db.groupchats !== 'object') db.groupchats = {};
+  return db.groupchats;
+}
+
+function gcId() {
+  return 'gc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+// ── Open group chats list ──
+async function openGroupChats() {
+  if (!currentUser) { showToast('Log in to use group chats!'); return; }
+  openOverlay('gc-overlay');
+  await renderGCList();
+}
+
+async function renderGCList() {
+  const area = document.getElementById('gc-list-area');
+  area.innerHTML = '<div class="lb-empty">Loading…</div>';
+  const gcs = await fetchGCs();
+  const myGCs = Object.entries(gcs).filter(([, g]) => g.members && g.members.includes(currentUser));
+  if (myGCs.length === 0) {
+    area.innerHTML = '<div class="lb-empty">No group chats yet — create one!</div>';
+    return;
+  }
+  area.innerHTML = '';
+  myGCs.sort((a, b) => {
+    const aLast = a[1].messages && a[1].messages.length ? a[1].messages[a[1].messages.length - 1].ts : 0;
+    const bLast = b[1].messages && b[1].messages.length ? b[1].messages[b[1].messages.length - 1].ts : 0;
+    return bLast - aLast;
+  });
+  myGCs.forEach(([id, g]) => {
+    const lastMsg = g.messages && g.messages.length ? g.messages[g.messages.length - 1] : null;
+    const preview = lastMsg ? (lastMsg.text.startsWith('__IMG__') ? '🖼 Image' : lastMsg.text.slice(0, 50)) : 'No messages yet';
+    const unread = _gcUnreadCount(g, id);
+    const div = document.createElement('div');
+    div.className = 'fr-row';
+    div.style.cursor = 'pointer';
+    div.onclick = () => openGCRoom(id);
+    div.innerHTML = `
+      <div style="width:38px;height:38px;background:var(--present);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">💬</div>
+      <div class="fr-info">
+        <div class="fr-name">${esc(g.name)}${unread ? ` <span style="background:#e06060;color:#fff;border-radius:8px;font-size:0.4rem;padding:1px 5px;vertical-align:middle;">${unread}</span>` : ''}</div>
+        <div class="fr-sub" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(preview)}</div>
+      </div>
+      <div style="font-size:0.42rem;color:var(--muted);flex-shrink:0;">${g.members.length} members</div>
+    `;
+    area.appendChild(div);
+  });
+}
+
+function _gcUnreadCount(g, id) {
+  const readTs = parseInt(localStorage.getItem('gcRead_' + id) || '0');
+  if (!g.messages) return 0;
+  return g.messages.filter(m => m.from !== currentUser && m.ts > readTs).length;
+}
+
+// ── Create group ──
+async function openCreateGC() {
+  if (!currentUser) return;
+  document.getElementById('gc-name-input').value = '';
+  document.getElementById('gc-create-err').textContent = '';
+  // Populate friend checkboxes
+  const db = await fetchDB();
+  const me = db[currentUser] || {};
+  ensureSocialFields(me);
+  const container = document.getElementById('gc-friend-checkboxes');
+  if (me.friends.length === 0) {
+    container.innerHTML = '<div class="fr-empty" style="padding:10px 0;">Add friends first to create a group!</div>';
+  } else {
+    const pfpMap = buildPfpMap(db);
+    container.innerHTML = me.friends.map(name => {
+      const u = db[name] || {};
+      const photo = pfpMap[name];
+      const av = photo
+        ? `<img src="${photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : `<div style="width:24px;height:24px;border-radius:50%;background:var(--correct);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;flex-shrink:0;">${name[0].toUpperCase()}</div>`;
+      return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 8px;border:1px solid var(--border);border-radius:3px;transition:border-color 0.12s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" value="${esc(name)}" style="accent-color:var(--correct);width:14px;height:14px;flex-shrink:0;">
+        ${av}
+        <span style="font-family:'Space Mono',monospace;font-size:0.58rem;">${esc(u.displayName || name)}</span>
+      </label>`;
+    }).join('');
+  }
+  closeOverlay('gc-overlay');
+  openOverlay('gc-create-overlay');
+}
+
+async function doCreateGC() {
+  const name = document.getElementById('gc-name-input').value.trim();
+  const errEl = document.getElementById('gc-create-err');
+  errEl.textContent = '';
+  if (!name) { errEl.textContent = 'Please enter a group name.'; return; }
+  const checked = [...document.querySelectorAll('#gc-friend-checkboxes input:checked')].map(el => el.value);
+  if (checked.length === 0) { errEl.textContent = 'Select at least one friend.'; return; }
+
+  errEl.textContent = 'Creating…';
+  dbCache = null;
+  const db = await fetchDB();
+  if (!db.groupchats) db.groupchats = {};
+
+  const id = gcId();
+  db.groupchats[id] = {
+    name,
+    members: [currentUser, ...checked],
+    messages: [],
+    createdBy: currentUser,
+    createdAt: Date.now()
+  };
+
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+
+  closeOverlay('gc-create-overlay');
+  showToast('Group "' + name + '" created!');
+  openGCRoom(id);
+}
+
+// ── Open a group chat room ──
+async function openGCRoom(id) {
+  currentGCId = id;
+  closeOverlay('gc-overlay');
+  openOverlay('gc-room-overlay');
+  await renderGCRoom();
+  _markGCRead(id);
+
+  clearInterval(gcPollInterval);
+  gcPollInterval = setInterval(async () => {
+    if (currentGCId === id && document.getElementById('gc-room-overlay').classList.contains('show')) {
+      await renderGCRoom();
+      _markGCRead(id);
+    } else {
+      clearInterval(gcPollInterval);
+    }
+  }, 6000);
+}
+
+function closeGCRoom() {
+  clearInterval(gcPollInterval);
+  gcPollInterval = null;
+  currentGCId = null;
+  closeOverlay('gc-room-overlay');
+  openGroupChats();
+}
+
+function _markGCRead(id) {
+  const now = Date.now();
+  localStorage.setItem('gcRead_' + id, now);
+}
+
+async function renderGCRoom() {
+  const msgsEl = document.getElementById('gc-msgs');
+  if (!msgsEl) return;
+  dbCache = null;
+  const gcs = await fetchGCs();
+  const g = gcs[currentGCId];
+  if (!g) { showToast('Group not found'); closeGCRoom(); return; }
+
+  document.getElementById('gc-room-title').textContent = g.name;
+  document.getElementById('gc-room-members').textContent = g.members.join(', ');
+
+  const msgs = (g.messages || []).slice(-100);
+  if (msgs.length === 0) {
+    msgsEl.innerHTML = '<div class="fr-empty" style="margin:auto;">No messages yet — say hi! 👋</div>';
+    return;
+  }
+
+  const db = await fetchDB();
+  const pfpMap = buildPfpMap(db);
+
+  const wasAtBottom = msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight < 80;
+  let html = '';
+  let lastDate = '';
+
+  msgs.forEach(msg => {
+    const isMe = msg.from === currentUser;
+    const d = new Date(msg.ts);
+    const dateStr = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    if (dateStr !== lastDate) {
+      html += `<div class="dm-date-divider">${dateStr}</div>`;
+      lastDate = dateStr;
+    }
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const photo = pfpMap[msg.from];
+    const avContent = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : msg.from[0].toUpperCase();
+    const avBg = photo ? 'none' : 'var(--correct)';
+
+    let bubbleContent;
+    if (msg.text && msg.text.startsWith('__IMG__')) {
+      bubbleContent = `<img class="dm-img" src="${msg.text.slice(7)}" onclick="openLightbox(this.src)" loading="lazy">`;
+    } else {
+      bubbleContent = `<div class="dm-bubble">${esc(msg.text || '')}</div>`;
+    }
+
+    if (isMe) {
+      html += `<div class="dm-bubble-wrap me">
+        <div class="dm-bubble-outer">${bubbleContent}</div>
+        <div class="dm-ts">${timeStr}</div>
+      </div>`;
+    } else {
+      html += `<div class="dm-bubble-wrap them">
+        <div style="display:flex;align-items:flex-end;gap:6px;">
+          <div style="width:26px;height:26px;background:${avBg};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.75rem;flex-shrink:0;overflow:hidden;">${avContent}</div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:0.42rem;color:var(--muted);margin-bottom:2px;padding-left:2px;">${esc(msg.from)}</div>
+            <div class="dm-bubble-outer">${bubbleContent}</div>
+          </div>
+        </div>
+        <div class="dm-ts" style="padding-left:32px;">${timeStr}</div>
+      </div>`;
+    }
+  });
+
+  msgsEl.innerHTML = html;
+  if (wasAtBottom) msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+// ── Send a group message ──
+let _gcSendQueue = Promise.resolve();
+
+async function sendGCMessage() {
+  const input = document.getElementById('gc-input');
+  const text = input.value.trim();
+  if (!text || !currentGCId) return;
+  input.value = '';
+  const id = currentGCId;
+  const ts = Date.now() + Math.random();
+  const tsInt = Math.round(ts);
+  _gcShowOptimistic(text, tsInt);
+  _gcSendQueue = _gcSendQueue.then(() => _atomicSendGC(id, text, tsInt));
+}
+
+function _gcShowOptimistic(text, ts) {
+  const msgsEl = document.getElementById('gc-msgs');
+  if (!msgsEl) return;
+  const empty = msgsEl.querySelector('.fr-empty');
+  if (empty) empty.remove();
+  const timeStr = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isImg = text.startsWith('__IMG__');
+  const bubbleContent = isImg
+    ? `<img class="dm-img" src="${text.slice(7)}" style="opacity:0.6">`
+    : `<div class="dm-bubble" style="opacity:0.75">${esc(text)}</div>`;
+  const wrap = document.createElement('div');
+  wrap.className = 'dm-bubble-wrap me';
+  wrap.dataset.optTs = ts;
+  wrap.innerHTML = `<div class="dm-bubble-outer">${bubbleContent}</div><div class="dm-ts">${timeStr}</div>`;
+  msgsEl.appendChild(wrap);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function _atomicSendGC(id, text, ts) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      dbCache = null;
+      const db = await fetchDB();
+      if (!db.groupchats) db.groupchats = {};
+      const g = db.groupchats[id];
+      if (!g) { showToast('Group not found'); return; }
+      if (!g.messages) g.messages = [];
+      // Idempotent
+      if (!g.messages.some(m => m.ts === ts && m.from === currentUser)) {
+        g.messages.push({ from: currentUser, text, ts });
+        if (g.messages.length > 300) g.messages = g.messages.slice(-300);
+      }
+      dbDirty = true;
+      await pushDB();
+      dbCache = null;
+      if (currentGCId === id) await renderGCRoom();
+      return;
+    } catch (e) {
+      if (attempt < 3) await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+      else showToast('Message failed');
+    }
+  }
+}
+
+// ── Group info / settings ──
+async function openGCInfo() {
+  const gcs = await fetchGCs();
+  const g = gcs[currentGCId];
+  if (!g) return;
+
+  document.getElementById('gc-info-title').textContent = g.name;
+
+  // Members list
+  const db = await fetchDB();
+  const pfpMap = buildPfpMap(db);
+  const membersList = document.getElementById('gc-info-members-list');
+  membersList.innerHTML = g.members.map(name => {
+    const u = db[name] || {};
+    const photo = pfpMap[name];
+    const av = photo
+      ? `<img src="${photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:28px;height:28px;border-radius:50%;background:var(--correct);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;">${name[0].toUpperCase()}</div>`;
+    const isCreator = name === g.createdBy;
+    const canKick = g.createdBy === currentUser && name !== currentUser;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 4px;">
+      ${av}
+      <span style="font-family:'Space Mono',monospace;font-size:0.58rem;flex:1;">${esc(u.displayName || name)}${isCreator ? ' 👑' : ''}</span>
+      ${canKick ? `<button onclick="kickGCMember('${esc(name)}')" style="padding:3px 8px;background:transparent;border:1px solid #e06060;color:#e06060;font-size:0.44rem;font-weight:700;cursor:pointer;border-radius:2px;letter-spacing:0.08em;">Remove</button>` : ''}
+    </div>`;
+  }).join('');
+
+  // Add member section — friends not already in group
+  const me = db[currentUser] || {};
+  ensureSocialFields(me);
+  const notInGroup = me.friends.filter(f => !g.members.includes(f));
+  const addSection = document.getElementById('gc-add-member-section');
+  const addBoxes = document.getElementById('gc-add-checkboxes');
+  if (notInGroup.length === 0) {
+    addSection.style.display = 'none';
+  } else {
+    addSection.style.display = 'block';
+    addBoxes.innerHTML = notInGroup.map(name => {
+      const u = db[name] || {};
+      return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border:1px solid var(--border);border-radius:3px;">
+        <input type="checkbox" value="${esc(name)}" style="accent-color:var(--correct);width:13px;height:13px;">
+        <span style="font-family:'Space Mono',monospace;font-size:0.55rem;">${esc(u.displayName || name)}</span>
+      </label>`;
+    }).join('');
+  }
+
+  openOverlay('gc-info-overlay');
+}
+
+async function doAddGCMembers() {
+  const checked = [...document.querySelectorAll('#gc-add-checkboxes input:checked')].map(el => el.value);
+  if (checked.length === 0) { showToast('Select at least one friend to add.'); return; }
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g) return;
+  checked.forEach(name => { if (!g.members.includes(name)) g.members.push(name); });
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  showToast('Members added!');
+  renderGCRoom();
+}
+
+async function kickGCMember(name) {
+  if (!confirm('Remove ' + name + ' from the group?')) return;
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g || g.createdBy !== currentUser) return;
+  g.members = g.members.filter(m => m !== name);
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  showToast(name + ' removed.');
+  openGCInfo();
+}
+
+async function leaveGC() {
+  if (!confirm('Leave this group?')) return;
+  dbCache = null;
+  const db = await fetchDB();
+  const g = db.groupchats && db.groupchats[currentGCId];
+  if (!g) return;
+  g.members = g.members.filter(m => m !== currentUser);
+  // If creator leaves and others remain, pass creator role
+  if (g.createdBy === currentUser && g.members.length > 0) g.createdBy = g.members[0];
+  // If empty, delete the group
+  if (g.members.length === 0) delete db.groupchats[currentGCId];
+  dbDirty = true;
+  await pushDB();
+  dbCache = null;
+  closeOverlay('gc-info-overlay');
+  closeGCRoom();
+  showToast('You left the group.');
+}
+
+// ── GC emoji picker ──
+function toggleGCEmojiPicker() {
+  const picker = document.getElementById('gc-emoji-picker');
+  if (!picker) return;
+  const isOpen = picker.style.display === 'flex';
+  picker.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) {
+    if (!picker.dataset.built) {
+      picker.dataset.built = '1';
+      picker.style.flexWrap = 'wrap';
+      picker.innerHTML = EMOJI_LIST.map(e =>
+        `<span onclick="insertGCEmoji('${e}')" style="font-size:1.3rem;cursor:pointer;padding:3px 4px;border-radius:4px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background=''">${e}</span>`
+      ).join('');
+    }
+    setTimeout(() => document.addEventListener('click', _closeGCEmojiOutside, { once: true }), 0);
+  }
+}
+
+function _closeGCEmojiOutside(e) {
+  const picker = document.getElementById('gc-emoji-picker');
+  const btn = document.getElementById('gc-emoji-btn');
+  if (picker && !picker.contains(e.target) && e.target !== btn) picker.style.display = 'none';
+}
+
+function insertGCEmoji(emoji) {
+  const input = document.getElementById('gc-input');
+  if (!input) return;
+  const pos = input.selectionStart || input.value.length;
+  input.value = input.value.slice(0, pos) + emoji + input.value.slice(pos);
+  input.focus();
+  input.selectionStart = input.selectionEnd = pos + emoji.length;
+  document.getElementById('gc-emoji-picker').style.display = 'none';
+}
+  <!-- ══ Group Chats Modal ══ -->
+<div class="overlay" id="gc-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:min(560px,88vh);">
+    <div class="dm-header">
+      <button class="dm-back" onclick="closeOverlay('gc-overlay')">‹</button>
+      <div style="flex:1;min-width:0;">
+        <div class="dm-title">Group Chats</div>
+      </div>
+      <button onclick="openCreateGC()" style="padding:6px 12px;background:var(--correct);border:none;color:#fff;font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:3px;">+ New Group</button>
+    </div>
+    <div id="gc-list-area" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- ══ Create Group Modal ══ -->
+<div class="overlay" id="gc-create-overlay">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button onclick="closeOverlay('gc-create-overlay')" style="background:none;border:none;color:var(--muted);font-size:0.9rem;cursor:pointer;padding:0 4px;">‹</button>
+      <div class="menu-title" style="margin-bottom:0;">New Group Chat</div>
+    </div>
+    <div class="menu-div"></div>
+    <div class="afield">
+      <label class="albl">Group Name</label>
+      <input class="ainput" id="gc-name-input" type="text" maxlength="40" placeholder="e.g. Wordle Squad">
+    </div>
+    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Add Friends</div>
+    <div id="gc-friend-checkboxes" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:14px;"></div>
+    <div class="aerr" id="gc-create-err"></div>
+    <button class="asubmit" onclick="doCreateGC()">Create Group</button>
+  </div>
+</div>
+
+<!-- ══ Group Chat Room ══ -->
+<div class="overlay" id="gc-room-overlay">
+  <div class="modal" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:min(560px,88vh);">
+    <div class="dm-header">
+      <button class="dm-back" onclick="closeGCRoom()">‹</button>
+      <div style="flex:1;min-width:0;">
+        <div class="dm-title" id="gc-room-title"></div>
+        <div class="dm-sub" id="gc-room-members"></div>
+      </div>
+      <button id="gc-info-btn" onclick="openGCInfo()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:0.75rem;padding:5px 9px;cursor:pointer;border-radius:3px;">⚙</button>
+    </div>
+    <div class="dm-msgs" id="gc-msgs"></div>
+    <div class="dm-input-row">
+      <button id="gc-emoji-btn" onclick="toggleGCEmojiPicker()" style="width:30px;height:30px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">😊</button>
+      <div id="gc-emoji-picker" style="display:none;position:absolute;bottom:62px;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-top-left-radius:8px;border-top-right-radius:8px;padding:10px 8px;z-index:10;flex-wrap:wrap;gap:2px;max-height:150px;overflow-y:auto;"></div>
+      <input class="dm-input" id="gc-input" type="text" placeholder="Message group…" maxlength="500"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendGCMessage();}">
+      <button class="dm-send" onclick="sendGCMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Group Info Modal ══ -->
+<div class="overlay" id="gc-info-overlay">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <button onclick="closeOverlay('gc-info-overlay')" style="background:none;border:none;color:var(--muted);font-size:0.9rem;cursor:pointer;padding:0 4px;">‹</button>
+      <div class="menu-title" style="margin-bottom:0;" id="gc-info-title"></div>
+    </div>
+    <div class="menu-div"></div>
+
+    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Members</div>
+    <div id="gc-info-members-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;max-height:180px;overflow-y:auto;"></div>
+
+    <div id="gc-add-member-section" style="margin-bottom:16px;">
+      <div style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Add Member</div>
+      <div id="gc-add-checkboxes" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;margin-bottom:8px;"></div>
+      <button onclick="doAddGCMembers()" style="padding:7px 14px;background:var(--correct);border:none;color:#fff;font-size:0.52rem;font-weight:700;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;">Add Selected</button>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
+    <button onclick="leaveGC()" style="width:100%;padding:10px;background:transparent;border:1px solid #e06060;color:#e06060;font-family:'Space Mono',monospace;font-size:0.58rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Leave Group</button>
+  </div>
+</div>
 </body>
 </html>
