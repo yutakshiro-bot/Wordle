@@ -4594,7 +4594,6 @@ async function renderGCRoom() {
   document.getElementById('gc-room-title').textContent = g.name;
   document.getElementById('gc-room-members').textContent = g.members.join(', ');
 
-  // Update header icon
   const headerIcon = document.getElementById('gc-header-icon');
   if (headerIcon) {
     if (g.iconPhoto) {
@@ -4662,7 +4661,6 @@ async function renderGCRoom() {
   if (wasAtBottom) msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
-// ── Send text message ──
 let _gcSendQueue = Promise.resolve();
 
 async function sendGCMessage() {
@@ -4676,7 +4674,6 @@ async function sendGCMessage() {
   _gcSendQueue = _gcSendQueue.then(() => _atomicSendGC(id, text, tsInt));
 }
 
-// ── Send image ──
 async function sendGCImage(fileInput) {
   const file = fileInput.files[0];
   if (!file || !currentGCId) return;
@@ -4739,14 +4736,12 @@ async function _atomicSendGC(id, text, ts) {
   }
 }
 
-// ── Group info / settings ──
 async function openGCInfo() {
   const gcs = await fetchGCs();
   const g = gcs[currentGCId];
   if (!g) return;
   document.getElementById('gc-info-title').textContent = g.name;
 
-  // Show current icon
   const iconDisp = document.getElementById('gc-icon-display');
   if (iconDisp) {
     if (g.iconPhoto) {
@@ -4758,7 +4753,6 @@ async function openGCInfo() {
     }
   }
 
-  // Build emoji picker row
   const emojiRow = document.getElementById('gc-icon-emoji-row');
   if (emojiRow) {
     const emojis = ['💬','🎮','🔥','🌟','🎯','🏆','🎲','🎸','🌈','🦄','🐉','🚀','🍕','⚡','🎉','👾','🌊','🎵','🤝','💡'];
@@ -4767,7 +4761,6 @@ async function openGCInfo() {
     ).join('');
   }
 
-  // Members list
   const db = await fetchDB();
   const pfpMap = buildPfpMap(db);
   const membersList = document.getElementById('gc-info-members-list');
@@ -4786,7 +4779,6 @@ async function openGCInfo() {
     </div>`;
   }).join('');
 
-  // Add member section
   const me = db[currentUser] || {};
   ensureSocialFields(me);
   const notInGroup = me.friends.filter(f => !g.members.includes(f));
@@ -4898,7 +4890,6 @@ async function leaveGC() {
   showToast('You left the group.');
 }
 
-// ── GC emoji picker ──
 function toggleGCEmojiPicker() {
   const picker = document.getElementById('gc-emoji-picker');
   if (!picker) return;
@@ -4932,6 +4923,8 @@ function insertGCEmoji(emoji) {
   document.getElementById('gc-emoji-picker').style.display = 'none';
 }
 
+})();
+</script>
 
 <!-- ══ Group Chats Modal ══ -->
 <div class="overlay" id="gc-overlay">
@@ -4998,8 +4991,6 @@ function insertGCEmoji(emoji) {
       <div class="menu-title" style="margin-bottom:0;" id="gc-info-title"></div>
     </div>
     <div class="menu-div"></div>
-
-    <!-- Icon picker -->
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
       <div id="gc-icon-display" style="width:56px;height:56px;border-radius:50%;background:var(--present);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid var(--border);" onclick="document.getElementById('gc-icon-file').click()" title="Click to upload photo">💬</div>
       <div style="flex:1;min-width:0;">
@@ -5010,23 +5001,17 @@ function insertGCEmoji(emoji) {
       </div>
     </div>
     <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
-
-    <!-- Members -->
     <div style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Members</div>
     <div id="gc-info-members-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;max-height:160px;overflow-y:auto;"></div>
-
-    <!-- Add member -->
     <div id="gc-add-member-section" style="margin-bottom:16px;">
       <div style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Add Member</div>
       <div id="gc-add-checkboxes" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;margin-bottom:8px;"></div>
       <button onclick="doAddGCMembers()" style="padding:7px 14px;background:var(--correct);border:none;color:#fff;font-size:0.52rem;font-weight:700;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;border-radius:2px;">Add Selected</button>
     </div>
-
     <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
     <button onclick="leaveGC()" style="width:100%;padding:10px;background:transparent;border:1px solid #e06060;color:#e06060;font-family:'Space Mono',monospace;font-size:0.58rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Leave Group</button>
   </div>
 </div>
 
-</script>
 </body>
 </html>
